@@ -29,7 +29,7 @@ complete_stereo_calib::complete_stereo_calib(complete_stereo_calib_params cscp_g
     scp_general.encoders_transition_noise = 0.025; //0.025;
     scp_general.features_measurements_noise = 5/(resize_factor*resize_factor); //5;
     scp_general.matching_threshold = 0.3; //0.25;
-    scp_general.max_number_of_features = 200;
+    scp_general.max_number_of_features = 100;
     scp_general.min_number_of_features = 1;
     scp_general.number_measurements = 6;
 
