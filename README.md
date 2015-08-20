@@ -145,8 +145,8 @@ This example uses OpenCv:
 	    iip.left_k1  = -0.32797;
 	    iip.left_k2  = 0.08380;
 	    iip.left_k3  = -0.00068;
-	    iip.left_k4  = 0.00098;
-	    iip.left_k5  = 0.0;
+	    iip.left_p1  = 0.00098;
+	    iip.left_p2  = 0.0;
 
 	    iip.right_resx = 640;
 	    iip.right_resy = 480;
@@ -157,8 +157,8 @@ This example uses OpenCv:
 	    iip.right_k1  = -0.34868;
 	    iip.right_k2  = 0.10345;
 	    iip.right_k3  = -0.00090;
-	    iip.right_k4  = 0.00008;
-	    iip.right_k5  = 0.0;
+	    iip.right_p1  = 0.00008;
+	    iip.right_p2  = 0.0;
 
 	    //capture the first images from your cameras
 	    VideoCapture cap1, cap2;
