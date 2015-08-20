@@ -86,6 +86,37 @@ You now need to link the stereo_calib_lib respository to your project. You can d
 
 This way you can compile and link the stereo_calib_lib to your project.
 
+## Setting the encoder measurements
+
+The system is prepared to receive to a maximum of 6 measurements from the cameras encoders. In case your system has measurements, you should include them in the follwing order:
+
+ - Encoder(0): left camera ry
+ - Encoder(1): right camera ry
+ - Encoder(2): left camera rx
+ - Encoder(3): right camera rx
+ - Encoder(4): left camera rz
+ - Encoder(5): right camera rz
+
+## Setting the stereo_calib_lib parameters
+
+To initialize the stereo_calib_lib you have to set the parameters (complete_stereo_calib_params) for the two cameras (intrinsic parameters) and define the baseline between the left and right cameras:
+
+ - complete_stereo_calib_params
+
+	- baseline: in mm
+	- left_cam_resx: width of your left image
+	- left_cam_resy: height of your left image
+	- left_cam_cx: left image principal point x
+	- left_cam_cy: left image principal point y
+	- left_cam_fx: left image focal length x
+	- left_cam_fy: left image focal length y
+	- right_cam_resx: width of your right image
+	- right_cam_resy: height of your right image
+	- right_cam_cx: right image principal point x
+	- right_cam_cy: right image principal point y
+	- right_cam_fx: right image focal length x
+	- right_cam_fy: right image focal length y
+
 ## Example
 
 This example uses OpenCv:
