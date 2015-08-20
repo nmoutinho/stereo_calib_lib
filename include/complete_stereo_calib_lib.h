@@ -53,23 +53,6 @@ struct complete_stereo_calib_data
     cv::Mat transformation_right_cam_to_baseline_center;
 };
 
-struct complete_stereo_calib_measurements_data
-{
-    cv::Mat Z0; //all the measurements -> Encoders Features Left and Features Right
-    cv::Mat Z1; //all the measurements -> Encoders Features Left and Features Right
-    cv::Mat Z2; //all the measurements -> Encoders Features Left and Features Right
-    cv::Mat Z3; //all the measurements -> Encoders Features Left and Features Right
-    cv::Mat Z4; //all the measurements -> Encoders Features Left and Features Right
-
-    cv::Mat R0; // the measurements covariance matrix adapted for RLY
-    cv::Mat R1; // the measurements covariance matrix adapted for RRY
-    cv::Mat R2; // the measurements covariance matrix adapted for RLX
-    cv::Mat R3; // the measurements covariance matrix adapted for RLZ
-    cv::Mat R4; // the measurements covariance matrix adapted for RRX
-
-    cv::Mat dG_dZ;
-};
-
 struct complete_stereo_disparity_data
 {
     cv::Mat disparity_image;
@@ -84,9 +67,9 @@ class complete_stereo_calib {
 
         complete_stereo_calib_params cscp_general;
         stereo_calib_params scp_general;
-        stereo_calib_params scp0, scp1, scp2, scp3, scp4;
+        stereo_calib_params scp;
 
-        stereo_calib sc0, sc1, sc2, sc3, sc4;
+        stereo_calib sc;
 
         cv::Mat Kleft, Kright;
 
@@ -113,20 +96,12 @@ class complete_stereo_calib {
 
     private:
 
-        complete_stereo_calib_measurements_data get_measurements_data(
-        std::vector<Feature> features_left, std::vector<Feature> features_right,
-        cv::Mat encoders_0, cv::Mat encoders_1, cv::Mat encoders_2, cv::Mat encoders_3,
-        cv::Mat encoders_4, double updated_encoders_measurements_noise, complete_stereo_calib_data cscd);
-
         void good_points_only(std::vector<Feature> features_left, std::vector<Feature> features_right,
 complete_stereo_calib_data cscd, cv::Mat Kleft, cv::Mat Kright,
 std::vector<Feature> &good_features_left, std::vector<Feature> &good_features_right);
 
         double feature_weight(cv::Point point_left, cv::Point point_right,
 cv::Mat Kleft, cv::Mat Kright, cv::Mat T_Unified_2_left, cv::Mat T_Unified_2_right);
-        double feature_weight_rx(cv::Point Point, cv::Mat K);
-        double feature_weight_ry(cv::Point Point, cv::Mat K);
-        double feature_weight_rz(cv::Point Point, cv::Mat K);
 
 };
 

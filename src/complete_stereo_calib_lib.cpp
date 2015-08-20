@@ -47,56 +47,16 @@ complete_stereo_calib::complete_stereo_calib(complete_stereo_calib_params cscp_g
     Kright.at<double>(0,2) = scp_general.right_cam_cx;
     Kright.at<double>(1,2) = scp_general.right_cam_cy;
 
-    scp0 = scp_general;
-    scp0.number_fixed_state_params = 1;
-    scp0.calibrate_joint_0 = true;
-    scp0.calibrate_joint_1 = false;
-    scp0.calibrate_joint_2 = false;
-    scp0.calibrate_joint_3 = false;
-    scp0.calibrate_joint_4 = false;
-    scp0.calibrate_joint_5 = false;
+    scp = scp_general;
+    scp.number_fixed_state_params = 5;
+    scp.calibrate_joint_0 = true;
+    scp.calibrate_joint_1 = true;
+    scp.calibrate_joint_2 = true;
+    scp.calibrate_joint_3 = false;
+    scp.calibrate_joint_4 = true;
+    scp.calibrate_joint_5 = true;
 
-    scp1 = scp_general;
-    scp1.number_fixed_state_params = 1;
-    scp1.calibrate_joint_0 = false;
-    scp1.calibrate_joint_1 = true;
-    scp1.calibrate_joint_2 = false;
-    scp1.calibrate_joint_3 = false;
-    scp1.calibrate_joint_4 = false;
-    scp1.calibrate_joint_5 = false;
-
-    scp2 = scp_general;
-    scp2.number_fixed_state_params = 1;
-    scp2.calibrate_joint_0 = false;
-    scp2.calibrate_joint_1 = false;
-    scp2.calibrate_joint_2 = true;
-    scp2.calibrate_joint_3 = false;
-    scp2.calibrate_joint_4 = false;
-    scp2.calibrate_joint_5 = false;
-
-    scp3 = scp_general;
-    scp3.number_fixed_state_params = 1;
-    scp3.calibrate_joint_0 = false;
-    scp3.calibrate_joint_1 = false;
-    scp3.calibrate_joint_2 = false;
-    scp3.calibrate_joint_3 = false;
-    scp3.calibrate_joint_4 = true;
-    scp3.calibrate_joint_5 = false;
-
-    scp4 = scp_general;
-    scp4.number_fixed_state_params = 1;
-    scp4.calibrate_joint_0 = false;
-    scp4.calibrate_joint_1 = false;
-    scp4.calibrate_joint_2 = false;
-    scp4.calibrate_joint_3 = false;
-    scp4.calibrate_joint_4 = false;
-    scp4.calibrate_joint_5 = true;
-
-    sc0.initialize(scp0);
-    sc1.initialize(scp1);
-    sc2.initialize(scp2);
-    sc3.initialize(scp3);
-    sc4.initialize(scp4);
+    sc.initialize(scp);
 
     first_iteration = true;
     use_good_points_only = false;
@@ -133,47 +93,7 @@ void complete_stereo_calib::calibrate(std::vector<Feature> features_left, std::v
         first_iteration = false;
     }
 
-    Mat real_encoders_0 = Mat::zeros(scp_general.number_measurements,1,CV_64F);
-    real_encoders_0.at<double>(0,0) = cameras_encoders.at<double>(0,0);
-    real_encoders_0.at<double>(1,0) = cameras_encoders.at<double>(1,0)-offset_1;
-    real_encoders_0.at<double>(2,0) = cameras_encoders.at<double>(2,0)-offset_2;
-    real_encoders_0.at<double>(4,0) = cameras_encoders.at<double>(4,0)-offset_3;
-    real_encoders_0.at<double>(5,0) = cameras_encoders.at<double>(5,0)-offset_4;
-
-    Mat real_encoders_1 = Mat::zeros(scp_general.number_measurements,1,CV_64F);
-    real_encoders_1.at<double>(0,0) = cameras_encoders.at<double>(0,0)-offset_0;
-    real_encoders_1.at<double>(1,0) = cameras_encoders.at<double>(1,0);
-    real_encoders_1.at<double>(2,0) = cameras_encoders.at<double>(2,0)-offset_2;
-    real_encoders_1.at<double>(4,0) = cameras_encoders.at<double>(4,0)-offset_3;
-    real_encoders_1.at<double>(5,0) = cameras_encoders.at<double>(5,0)-offset_4;
-
-    Mat real_encoders_2 = Mat::zeros(scp_general.number_measurements,1,CV_64F);
-    real_encoders_2.at<double>(0,0) = cameras_encoders.at<double>(0,0)-offset_0;
-    real_encoders_2.at<double>(1,0) = cameras_encoders.at<double>(1,0)-offset_1;
-    real_encoders_2.at<double>(2,0) = cameras_encoders.at<double>(2,0);
-    real_encoders_2.at<double>(4,0) = cameras_encoders.at<double>(4,0)-offset_3;
-    real_encoders_2.at<double>(5,0) = cameras_encoders.at<double>(5,0)-offset_4;
-
-    Mat real_encoders_3 = Mat::zeros(scp_general.number_measurements,1,CV_64F);
-    real_encoders_3.at<double>(0,0) = cameras_encoders.at<double>(0,0)-offset_0;
-    real_encoders_3.at<double>(1,0) = cameras_encoders.at<double>(1,0)-offset_1;
-    real_encoders_3.at<double>(2,0) = cameras_encoders.at<double>(2,0)-offset_2;
-    real_encoders_3.at<double>(4,0) = cameras_encoders.at<double>(4,0);
-    real_encoders_3.at<double>(5,0) = cameras_encoders.at<double>(5,0)-offset_4;
-
-    Mat real_encoders_4 = Mat::zeros(scp_general.number_measurements,1,CV_64F);
-    real_encoders_4.at<double>(0,0) = cameras_encoders.at<double>(0,0)-offset_0;
-    real_encoders_4.at<double>(1,0) = cameras_encoders.at<double>(1,0)-offset_1;
-    real_encoders_4.at<double>(2,0) = cameras_encoders.at<double>(2,0)-offset_2;
-    real_encoders_4.at<double>(4,0) = cameras_encoders.at<double>(4,0)-offset_3;
-    real_encoders_4.at<double>(5,0) = cameras_encoders.at<double>(5,0);
-
-    Mat offsets_covariance = Mat();
-    offsets_covariance.push_back(sc0.get_offsets_covariance());
-    offsets_covariance.push_back(sc1.get_offsets_covariance());
-    offsets_covariance.push_back(sc2.get_offsets_covariance());
-    offsets_covariance.push_back(sc3.get_offsets_covariance());
-    offsets_covariance.push_back(sc4.get_offsets_covariance());
+    Mat offsets_covariance = sc.get_offsets_covariance();
 
     double min, max;
     minMaxLoc(offsets_covariance, &min, &max);
@@ -185,12 +105,6 @@ void complete_stereo_calib::calibrate(std::vector<Feature> features_left, std::v
 
     //cout << "using good points: " << use_good_points_only << endl;
     //cout << "covariance: " << updated_encoders_measurements_noise*180/CV_PI << endl;
-
-    sc0.scp.encoders_measurements_noise = updated_encoders_measurements_noise;
-    sc1.scp.encoders_measurements_noise = updated_encoders_measurements_noise;
-    sc2.scp.encoders_measurements_noise = updated_encoders_measurements_noise;
-    sc3.scp.encoders_measurements_noise = updated_encoders_measurements_noise;
-    sc4.scp.encoders_measurements_noise = updated_encoders_measurements_noise;
 
     complete_stereo_calib_data cscd = get_calibrated_transformations(cameras_encoders);
 
@@ -205,29 +119,16 @@ void complete_stereo_calib::calibrate(std::vector<Feature> features_left, std::v
 
     //cout << "# points used: " << good_features_left.size() << "/" << features_left.size() << endl << endl;
 
-    complete_stereo_calib_measurements_data cscmd = get_measurements_data(good_features_left,
-    good_features_right, real_encoders_0, real_encoders_1, real_encoders_2, real_encoders_3,
-    real_encoders_4, updated_encoders_measurements_noise, cscd);
-
-    bool encoders_measurements = true;
-    bool features_measurements = false;
-
     if(good_features_left.size() >= scp_general.min_number_of_features)
     {
-        features_measurements = true;
+        sc.calibrate(good_features_left, good_features_right, cameras_encoders);
     }
 
-    sc0.calibrate(cscmd.Z0, cscmd.R0, good_features_left.size(), cscmd.dG_dZ, encoders_measurements, features_measurements);
-    sc1.calibrate(cscmd.Z1, cscmd.R1, good_features_left.size(), cscmd.dG_dZ, encoders_measurements, features_measurements);
-    sc2.calibrate(cscmd.Z2, cscmd.R2, good_features_left.size(), cscmd.dG_dZ, encoders_measurements, features_measurements);
-    sc3.calibrate(cscmd.Z3, cscmd.R3, good_features_left.size(), cscmd.dG_dZ, encoders_measurements, features_measurements);
-    sc4.calibrate(cscmd.Z4, cscmd.R4, good_features_left.size(), cscmd.dG_dZ, encoders_measurements, features_measurements);
-
-    offset_0 = sc0.get_offsets().at<double>(0,0);
-    offset_1 = sc1.get_offsets().at<double>(0,0);
-    offset_2 = sc2.get_offsets().at<double>(0,0);
-    offset_3 = sc3.get_offsets().at<double>(0,0);
-    offset_4 = sc4.get_offsets().at<double>(0,0);
+    offset_0 = sc.get_offsets().at<double>(0,0);
+    offset_1 = sc.get_offsets().at<double>(1,0);
+    offset_2 = sc.get_offsets().at<double>(2,0);
+    offset_3 = sc.get_offsets().at<double>(3,0);
+    offset_4 = sc.get_offsets().at<double>(4,0);
 }
 
 Mat complete_stereo_calib::get_offsets()
@@ -260,182 +161,6 @@ std::vector<Feature> &good_features_left, std::vector<Feature> &good_features_ri
     }
 }
 
-complete_stereo_calib_measurements_data complete_stereo_calib::get_measurements_data(
-std::vector<Feature> features_left, std::vector<Feature> features_right, cv::Mat encoders_0,
-cv::Mat encoders_1, cv::Mat encoders_2, cv::Mat encoders_3, cv::Mat encoders_4,
-double updated_encoders_measurements_noise, complete_stereo_calib_data cscd)
-{
-    complete_stereo_calib_measurements_data cscmd;
-
-    int NumPoints = features_left.size();
-    int Z_size = scp_general.number_measurements+4*NumPoints;
-    Mat dG_dZ = Mat::zeros(NumPoints,Z_size,CV_64F);
-    Mat dg_dE, dg_dFL, dg_dFR;
-
-    cscmd.Z0 = Mat(Z_size,1,CV_64F);
-    cscmd.Z1 = Mat(Z_size,1,CV_64F);
-    cscmd.Z2 = Mat(Z_size,1,CV_64F);
-    cscmd.Z3 = Mat(Z_size,1,CV_64F);
-    cscmd.Z4 = Mat(Z_size,1,CV_64F);
-
-    cscmd.R0 = Mat::zeros(Z_size, Z_size,CV_64F);
-    cscmd.R1 = Mat::zeros(Z_size, Z_size,CV_64F);
-    cscmd.R2 = Mat::zeros(Z_size, Z_size,CV_64F);
-    cscmd.R3 = Mat::zeros(Z_size, Z_size,CV_64F);
-    cscmd.R4 = Mat::zeros(Z_size, Z_size,CV_64F);
-
-    Mat Z_EKplus1(scp_general.number_measurements,1,CV_64F);
-    Mat Z_FLKplus1(2*NumPoints,1,CV_64F);
-    Mat Z_FRKplus1(2*NumPoints,1,CV_64F);
-
-    for (int i=0; i<scp_general.number_measurements; i++)
-    {
-        Z_EKplus1.at<double>(i,0) = encoders_0.at<double>(i,0);
-
-        cscmd.Z0.at<double>(i,0) = encoders_0.at<double>(i,0);
-        cscmd.Z1.at<double>(i,0) = encoders_1.at<double>(i,0);
-        cscmd.Z2.at<double>(i,0) = encoders_2.at<double>(i,0);
-        cscmd.Z3.at<double>(i,0) = encoders_3.at<double>(i,0);
-        cscmd.Z4.at<double>(i,0) = encoders_4.at<double>(i,0);
-
-        cscmd.R0.at<double>(i,i) = updated_encoders_measurements_noise*updated_encoders_measurements_noise;
-        cscmd.R1.at<double>(i,i) = updated_encoders_measurements_noise*updated_encoders_measurements_noise;
-        cscmd.R2.at<double>(i,i) = updated_encoders_measurements_noise*updated_encoders_measurements_noise;
-        cscmd.R3.at<double>(i,i) = updated_encoders_measurements_noise*updated_encoders_measurements_noise;
-        cscmd.R4.at<double>(i,i) = updated_encoders_measurements_noise*updated_encoders_measurements_noise;
-    }
-
-    /*Mat il = Mat::zeros(scp_general.left_cam_resy, 3*scp_general.left_cam_resx, CV_8UC3);
-    Mat ir = Mat::zeros(scp_general.left_cam_resy, 3*scp_general.left_cam_resx, CV_8UC3);//*/
-
-    for(int j=0; j<NumPoints; j++)
-    {
-        Z_FLKplus1.at<double>(2*j,0) = features_left[j].Point.x;
-        Z_FLKplus1.at<double>(2*j+1,0) = features_left[j].Point.y;
-        Z_FRKplus1.at<double>(2*j,0) = features_right[j].Point.x;
-        Z_FRKplus1.at<double>(2*j+1,0) = features_right[j].Point.y;
-
-        //double w = 1;/*feature_weight(features_left[j].Point, features_right[j].Point, Kleft, Kright,
-        /*cscd.transformation_left_cam_to_baseline_center.inv(),
-        cscd.transformation_right_cam_to_baseline_center.inv());//*/
-
-        /*double w0 = 1; //feature_weight_ry(features_left[j].Point, Kleft);
-        double w1 = 1; //w0; //feature_weight_ry(features_right[j].Point, Kright); //w0;
-        double w2 = 1; //feature_weight_rx(features_left[j].Point, Kleft);
-        double w3 = 1; //feature_weight_rz(features_left[j].Point, Kleft);
-        double w4 = 1; //w3; //feature_weight_rz(features_right[j].Point, Kright); //w3;
-
-        double features_noise_0 = (cscp_general.lambda*(1-w0) + 1)*scp_general.features_measurements_noise;
-        double features_noise_1 = (cscp_general.lambda*(1-w1) + 1)*scp_general.features_measurements_noise;
-        double features_noise_2 = (cscp_general.lambda*(1-w2) + 1)*scp_general.features_measurements_noise;
-        double features_noise_3 = (cscp_general.lambda*(1-w3) + 1)*scp_general.features_measurements_noise;
-        double features_noise_4 = (cscp_general.lambda*(1-w4) + 1)*scp_general.features_measurements_noise;//*/
-
-        double features_noise_0 = scp_general.features_measurements_noise;
-        double features_noise_1 = scp_general.features_measurements_noise;
-        double features_noise_2 = scp_general.features_measurements_noise;
-        double features_noise_3 = scp_general.features_measurements_noise;
-        double features_noise_4 = scp_general.features_measurements_noise;//*/
-
-
-        /*il.at<Vec3b>(features_left[j].Point.y, features_left[j].Point.x)[1] = w2*255;
-        il.at<Vec3b>(features_left[j].Point.y, features_left[j].Point.x)[2] = (1-w2)*255;
-        il.at<Vec3b>(features_left[j].Point.y, scp_general.left_cam_resx + features_left[j].Point.x)[1] = w0*255;
-        il.at<Vec3b>(features_left[j].Point.y, scp_general.left_cam_resx + features_left[j].Point.x)[2] = (1-w0)*255;
-        il.at<Vec3b>(features_left[j].Point.y, 2*scp_general.left_cam_resx + features_left[j].Point.x)[1] = w3*255;
-        il.at<Vec3b>(features_left[j].Point.y, 2*scp_general.left_cam_resx + features_left[j].Point.x)[2] = (1-w3)*255;
-
-        ir.at<Vec3b>(features_right[j].Point.y, features_right[j].Point.x)[1] = w2*255;
-        ir.at<Vec3b>(features_right[j].Point.y, features_right[j].Point.x)[2] = (1-w2)*255;
-        ir.at<Vec3b>(features_right[j].Point.y, scp_general.left_cam_resx + features_right[j].Point.x)[1] = w0*255;
-        ir.at<Vec3b>(features_right[j].Point.y, scp_general.left_cam_resx + features_right[j].Point.x)[2] = (1-w0)*255;
-        ir.at<Vec3b>(features_right[j].Point.y, 2*scp_general.left_cam_resx + features_right[j].Point.x)[1] = w3*255;
-        ir.at<Vec3b>(features_right[j].Point.y, 2*scp_general.left_cam_resx + features_right[j].Point.x)[2] = (1-w3)*255;//*/
-
-
-        cscmd.Z0.at<double>(scp_general.number_measurements+2*j,0) = features_left[j].Point.x;
-        cscmd.Z0.at<double>(scp_general.number_measurements+2*j+1,0) = features_left[j].Point.y;
-        cscmd.Z0.at<double>(scp_general.number_measurements+2*NumPoints+2*j,0) = features_right[j].Point.x;
-        cscmd.Z0.at<double>(scp_general.number_measurements+2*NumPoints+2*j+1,0) = features_right[j].Point.y;
-
-        cscmd.Z1.at<double>(scp_general.number_measurements+2*j,0) = features_left[j].Point.x;
-        cscmd.Z1.at<double>(scp_general.number_measurements+2*j+1,0) = features_left[j].Point.y;
-        cscmd.Z1.at<double>(scp_general.number_measurements+2*NumPoints+2*j,0) = features_right[j].Point.x;
-        cscmd.Z1.at<double>(scp_general.number_measurements+2*NumPoints+2*j+1,0) = features_right[j].Point.y;
-
-        cscmd.Z2.at<double>(scp_general.number_measurements+2*j,0) = features_left[j].Point.x;
-        cscmd.Z2.at<double>(scp_general.number_measurements+2*j+1,0) = features_left[j].Point.y;
-        cscmd.Z2.at<double>(scp_general.number_measurements+2*NumPoints+2*j,0) = features_right[j].Point.x;
-        cscmd.Z2.at<double>(scp_general.number_measurements+2*NumPoints+2*j+1,0) = features_right[j].Point.y;
-
-        cscmd.Z3.at<double>(scp_general.number_measurements+2*j,0) = features_left[j].Point.x;
-        cscmd.Z3.at<double>(scp_general.number_measurements+2*j+1,0) = features_left[j].Point.y;
-        cscmd.Z3.at<double>(scp_general.number_measurements+2*NumPoints+2*j,0) = features_right[j].Point.x;
-        cscmd.Z3.at<double>(scp_general.number_measurements+2*NumPoints+2*j+1,0) = features_right[j].Point.y;
-
-        cscmd.Z4.at<double>(scp_general.number_measurements+2*j,0) = features_left[j].Point.x;
-        cscmd.Z4.at<double>(scp_general.number_measurements+2*j+1,0) = features_left[j].Point.y;
-        cscmd.Z4.at<double>(scp_general.number_measurements+2*NumPoints+2*j,0) = features_right[j].Point.x;
-        cscmd.Z4.at<double>(scp_general.number_measurements+2*NumPoints+2*j+1,0) = features_right[j].Point.y;
-
-        cscmd.R0.at<double>(scp_general.number_measurements+2*j,scp_general.number_measurements+2*j) = features_noise_0*features_noise_0;
-        cscmd.R0.at<double>(scp_general.number_measurements+2*j+1,scp_general.number_measurements+2*j+1) = features_noise_0*features_noise_0;
-        cscmd.R0.at<double>(scp_general.number_measurements+2*NumPoints+2*j,scp_general.number_measurements+2*NumPoints+2*j) = features_noise_0*features_noise_0;
-        cscmd.R0.at<double>(scp_general.number_measurements+2*NumPoints+2*j+1,scp_general.number_measurements+2*NumPoints+2*j+1) = features_noise_0*features_noise_0;
-
-        cscmd.R1.at<double>(scp_general.number_measurements+2*j,scp_general.number_measurements+2*j) = features_noise_1*features_noise_1;
-        cscmd.R1.at<double>(scp_general.number_measurements+2*j+1,scp_general.number_measurements+2*j+1) = features_noise_1*features_noise_1;
-        cscmd.R1.at<double>(scp_general.number_measurements+2*NumPoints+2*j,scp_general.number_measurements+2*NumPoints+2*j) = features_noise_1*features_noise_1;
-        cscmd.R1.at<double>(scp_general.number_measurements+2*NumPoints+2*j+1,scp_general.number_measurements+2*NumPoints+2*j+1) = features_noise_1*features_noise_1;
-
-        cscmd.R2.at<double>(scp_general.number_measurements+2*j,scp_general.number_measurements+2*j) = features_noise_2*features_noise_2;
-        cscmd.R2.at<double>(scp_general.number_measurements+2*j+1,scp_general.number_measurements+2*j+1) = features_noise_2*features_noise_2;
-        cscmd.R2.at<double>(scp_general.number_measurements+2*NumPoints+2*j,scp_general.number_measurements+2*NumPoints+2*j) = features_noise_2*features_noise_2;
-        cscmd.R2.at<double>(scp_general.number_measurements+2*NumPoints+2*j+1,scp_general.number_measurements+2*NumPoints+2*j+1) = features_noise_2*features_noise_2;
-
-        cscmd.R3.at<double>(scp_general.number_measurements+2*j,scp_general.number_measurements+2*j) = features_noise_3*features_noise_3;
-        cscmd.R3.at<double>(scp_general.number_measurements+2*j+1,scp_general.number_measurements+2*j+1) = features_noise_3*features_noise_3;
-        cscmd.R3.at<double>(scp_general.number_measurements+2*NumPoints+2*j,scp_general.number_measurements+2*NumPoints+2*j) = features_noise_3*features_noise_3;
-        cscmd.R3.at<double>(scp_general.number_measurements+2*NumPoints+2*j+1,scp_general.number_measurements+2*NumPoints+2*j+1) = features_noise_3*features_noise_3;
-
-        cscmd.R4.at<double>(scp_general.number_measurements+2*j,scp_general.number_measurements+2*j) = features_noise_4*features_noise_4;
-        cscmd.R4.at<double>(scp_general.number_measurements+2*j+1,scp_general.number_measurements+2*j+1) = features_noise_4*features_noise_4;
-        cscmd.R4.at<double>(scp_general.number_measurements+2*NumPoints+2*j,scp_general.number_measurements+2*NumPoints+2*j) = features_noise_4*features_noise_4;
-        cscmd.R4.at<double>(scp_general.number_measurements+2*NumPoints+2*j+1,scp_general.number_measurements+2*NumPoints+2*j+1) = features_noise_4*features_noise_4;
-    }
-
-    /*imshow("il", il);
-    imshow("ir", ir);//*/
-
-    //dGF_dZEk+1
-
-    //calculate the dG_dZ only once to speed up the system
-    dg_dE=dG_dZ(Range(0,NumPoints),Range(0, scp_general.number_measurements));
-    Diff(boost::bind(& calibrationDynamicStereoCameras::G_F, sc0.csc, sc0.get_offsets(), Z_FLKplus1, Z_FRKplus1, _1, _2), Z_EKplus1, dg_dE);
-
-    //dGF_dZFLk+1
-    Mat Z_FL_k(2,1,CV_64F);
-    Mat Z_FR_k(2,1,CV_64F);
-    for(int k=0; k<NumPoints; k++)
-    {
-        dg_dFL = dG_dZ(Range(k,k+1),Range(scp_general.number_measurements+2*k, scp_general.number_measurements+2*k+1+1));
-        dg_dFR = dG_dZ(Range(k,k+1),Range(scp_general.number_measurements+2*NumPoints+2*k, scp_general.number_measurements+2*NumPoints+2*k+1+1));
-
-        Z_FL_k.at<double>(0,0) = Z_FLKplus1.at<double>(2*k,0);
-        Z_FL_k.at<double>(1,0) = Z_FLKplus1.at<double>(2*k+1,0);
-
-        Z_FR_k.at<double>(0,0) = Z_FRKplus1.at<double>(2*k,0);
-        Z_FR_k.at<double>(1,0) = Z_FRKplus1.at<double>(2*k+1,0);
-
-        Diff(boost::bind(& calibrationDynamicStereoCameras::G_F, sc0.csc, sc0.get_offsets(), _1, Z_FR_k, Z_EKplus1, _2), Z_FL_k, dg_dFL);
-        Diff(boost::bind(& calibrationDynamicStereoCameras::G_F, sc0.csc, sc0.get_offsets(), Z_FL_k, _1, Z_EKplus1, _2), Z_FR_k, dg_dFR);
-    }
-
-    cscmd.dG_dZ = dG_dZ.clone();
-    return cscmd;
-}
-
-
 //give more weight to closer points
 double complete_stereo_calib::feature_weight(cv::Point point_left, cv::Point point_right,
 cv::Mat Kleft, cv::Mat Kright, cv::Mat T_Unified_2_left, cv::Mat T_Unified_2_right)
@@ -453,76 +178,6 @@ cv::Mat Kleft, cv::Mat Kright, cv::Mat T_Unified_2_left, cv::Mat T_Unified_2_rig
     {
         w = 1.;
     }
-
-    return w;
-}
-
-//w=0 se o ponto for bom / w=1 se o ponto for mau
-//ponto é bom se |z| for igual a |y|
-double complete_stereo_calib::feature_weight_rx(cv::Point point, cv::Mat K)
-{
-    double v = point.y;
-
-    double cy = K.at<double>(1,2);
-    double fy = K.at<double>(1,1);
-
-    double mean1 = cy - fy;
-    double mean2 = cy + fy;
-
-    double std1 = fy/4.; //fy/4.;
-    double std2 = fy/4.; //fy/4.;
-
-    double a1 = -(v-mean1)*(v-mean1)/((2*std1)*(2*std1));
-    double a2 = -(v-mean2)*(v-mean2)/((2*std2)*(2*std2));
-
-    double w = exp(a1) + exp(a2);
-
-    return w;
-}
-
-//w=0 se o ponto for bom / w=1 se o ponto for mau
-//ponto é bom se |z| for igual a |x|
-double complete_stereo_calib::feature_weight_ry(cv::Point point, cv::Mat K)
-{
-    double u = point.x;
-
-    double cx = K.at<double>(0,2);
-    double fx = K.at<double>(0,0);
-
-    double mean1 = cx - fx;
-    double mean2 = cx + fx;
-
-    double std1 = fx/4.; //fx/4.;
-    double std2 = fx/4.; //fx/4.;
-
-    double a1 = -(u-mean1)*(u-mean1)/((2*std1)*(2*std1));
-    double a2 = -(u-mean2)*(u-mean2)/((2*std2)*(2*std2));
-
-    double w = exp(a1) + exp(a2);
-
-    return w;
-}
-
-//w=0 se o ponto for bom / w=1 se o ponto for mau
-//ponto é bom se |z| for igual a |d|, onde d = sqrt(x*x + y*y)
-double complete_stereo_calib::feature_weight_rz(cv::Point point, cv::Mat K)
-{
-    Mat im = Mat::ones(3,1,CV_64F);
-    im.at<double>(0,0) = point.x;
-    im.at<double>(1,0) = point.y;
-
-    Mat norm_pt = K.inv()*im;
-
-    double xn = norm_pt.at<double>(0,0);
-    double yn = norm_pt.at<double>(1,0);
-
-    double d = sqrt(xn*xn + yn*yn);
-
-    double mean1 = 1;
-    double std1 = 0.1; //0.1;
-    double a = -(d-mean1)*(d-mean1)/((2*std1)*(2*std1));
-
-    double w = exp(a);
 
     return w;
 }
