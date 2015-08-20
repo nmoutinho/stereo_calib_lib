@@ -73,14 +73,14 @@ Add these two lines at the end of the file and save it:
 
 Finally, close the console and open a new one, restart the computer or logout and then login again. OpenCV will not work correctly until you do this.
 
-## Installation
+## Installing the stereo_calib_lib repository
 
-First you have to download the repository to any _FOLDER_, by doing:
+First you have to download the repository to any _FOLDER_ in your PC, by doing:
 
 	>> cd _FOLDER_
 	>> git clone https://github.com/nmoutinho/stereo_calib_lib.git
 
-You need to link the stereo_calib_lib respository to your project. You can do this by creating a symbolic link to _FOLDER_/stereo_calib_lib in the root of your project, where your CMakeLists.txt file is located. In the CMakeLists.txt file of your project, add the following line:
+You now need to link the stereo_calib_lib respository to your project. You can do this by creating a symbolic link to _FOLDER_/stereo_calib_lib in the root of your project, where your CMakeLists.txt file is located. In the CMakeLists.txt file of your project, add the following line:
 
 	>> add_subdirectory(stereo_calib_lib)
 
@@ -88,4 +88,99 @@ This way you can compile and link the stereo_calib_lib to your project.
 
 ## Example
 
-This example uses OpenCv 
+This example uses OpenCv:
+
+	#include <opencv/cv.h>
+	#include <opencv/highgui.h>
+	#include "complete_stereo_calib_lib.h"
+	#include "images/imagesBase.h"	
+
+	int main(int argc, char * argv[])
+	{
+	    imagesBase_initial_parameters iip;
+	    iip.left_resx = 640;
+	    iip.left_resy = 480;
+	    iip.left_cx = 337.38258;
+	    iip.left_cy = 241.82695;
+	    iip.left_fx = 433.16067;
+	    iip.left_fy = 433.81054;
+	    iip.left_k1  = -0.32797;
+	    iip.left_k2  = 0.08380;
+	    iip.left_k3  = -0.00068;
+	    iip.left_k4  = 0.00098;
+	    iip.left_k5  = 0.0;
+
+	    iip.right_resx = 640;
+	    iip.right_resy = 480;
+	    iip.right_cx = 339.67895;
+	    iip.right_cy = 249.41158;
+	    iip.right_fx = 442.82627;
+	    iip.right_fy = 442.72700;
+	    iip.right_k1  = -0.34868;
+	    iip.right_k2  = 0.10345;
+	    iip.right_k3  = -0.00090;
+	    iip.right_k4  = 0.00008;
+	    iip.right_k5  = 0.0;
+
+	    //first images
+	    VideoCapture cap1, cap2;
+	    cap1.open(0);
+	    cap2.open(1);
+
+	    Mat leftraw, rightraw, left, right;
+	    cap2 >> right;
+	    cap1 >> left;
+
+	    imagesBase_data ibd = ib.rectify(left, right);
+	    Mat kleft = ibd.calibMatLeft;
+	    Mat kright = ibd.calibMatRight;
+	    int width = iip.left_resx;
+	    int height = iip.left_resy;
+
+	    double resize_factor = 2.;
+
+	    complete_stereo_calib_params cscp_general;
+	    cscp_general.baseline = 67;//in mm
+	    cscp_general.left_cam_resx = width/resize_factor;
+	    cscp_general.left_cam_resy = height/resize_factor;
+	    cscp_general.left_cam_cx = kleft.at<double>(0,2)/resize_factor;
+	    cscp_general.left_cam_cy = kleft.at<double>(1,2)/resize_factor;
+	    cscp_general.left_cam_fx = kleft.at<double>(0,0)/resize_factor;
+	    cscp_general.left_cam_fy = kleft.at<double>(1,1)/resize_factor;
+	    cscp_general.right_cam_resx = width/resize_factor;
+	    cscp_general.right_cam_resy = height/resize_factor;
+	    cscp_general.right_cam_cx = kright.at<double>(0,2)/resize_factor;
+	    cscp_general.right_cam_cy = kright.at<double>(1,2)/resize_factor;
+	    cscp_general.right_cam_fx = kright.at<double>(0,0)/resize_factor;
+	    cscp_general.right_cam_fy = kright.at<double>(1,1)/resize_factor;
+
+	    complete_stereo_calib csc(cscp_general);
+
+	    while(1)
+	    {
+		cap2 >> right;
+		cap1 >> left;
+
+		imagesBase_data ibd = ib.rectify(left, right);
+
+		Mat left_rz, right_rz;
+
+		resize(ibd.rectifiedLeftImage, left_rz, Size(left.cols/resize_factor,left.rows/resize_factor));
+		resize(ibd.rectifiedRightImage, right_rz, Size(right.cols/resize_factor,right.rows/resize_factor));
+
+		Mat stereo_encoders = Mat::zeros(6,1,CV_64F);
+
+		csc.calibrate(left_rz, right_rz, stereo_encoders);
+
+		//get transformations
+		complete_stereo_calib_data cscd =  csc.get_calibrated_transformations(stereo_encoders);
+		complete_stereo_disparity_data csdd = csc.complete_stereo_calib::get_disparity_map(left_rz, right_rz, stereo_encoders);
+        	imshow("disparity", csdd.disparity_image);
+		waitKey(1)
+
+		cout << "Transformation from left to right camera: " << cscd.transformation_left_cam_to_right_cam << endl;
+		
+	    }
+
+	    return 0;
+	}
