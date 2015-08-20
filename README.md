@@ -5,7 +5,7 @@ The stereo_calib_lib calibrates any stereo vision system in an online manner, wi
 
 This system should be left running during operation and provides the calibrated transformation between the two cameras at any time instance. 
 
-# Requirements
+## Requirements
 
 To use stereo_calib_lib you need the follwing libraries:
 
@@ -13,7 +13,7 @@ To use stereo_calib_lib you need the follwing libraries:
  - Cmake >= 2.8
  - OpenCv >= 2.4.9
 
-# Configure the system (on Ubuntu 12.04 LTS or 14.04 LTS) - installing gcc, Cmake and OpenCv 2.4.9
+## Configure the system (on Ubuntu 12.04 LTS or 14.04 LTS) - installing gcc, Cmake and OpenCv 2.4.9
 
 OK, so the first step is to make sure that everything in the system is updated and upgraded. Open the terminal and write this:
 
@@ -73,7 +73,7 @@ Add these two lines at the end of the file and save it:
 
 Finally, close the console and open a new one, restart the computer or logout and then login again. OpenCV will not work correctly until you do this.
 
-# Installation
+## Installation
 
 First you have to download the repository to any _FOLDER_, by doing:
 
@@ -86,6 +86,6 @@ You need to link the stereo_calib_lib respository to your project. You can do th
 
 This way you can compile and link the stereo_calib_lib to your project.
 
-# Example
+## Example
 
 This example uses OpenCv 
