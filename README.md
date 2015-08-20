@@ -97,6 +97,7 @@ This example uses OpenCv:
 
 	int main(int argc, char * argv[])
 	{
+	    //this are the intrinsic parameters of your cameras before rectification
 	    imagesBase_initial_parameters iip;
 	    iip.left_resx = 640;
 	    iip.left_resy = 480;
@@ -122,7 +123,7 @@ This example uses OpenCv:
 	    iip.right_k4  = 0.00008;
 	    iip.right_k5  = 0.0;
 
-	    //first images
+	    //capture the first images from your cameras
 	    VideoCapture cap1, cap2;
 	    cap1.open(0);
 	    cap2.open(1);
@@ -131,6 +132,7 @@ This example uses OpenCv:
 	    cap2 >> right;
 	    cap1 >> left;
 
+	    //rectify your images. Get the new intrinsic parameters that should be sent to the stereo calibration system.
 	    imagesBase_data ibd = ib.rectify(left, right);
 	    Mat kleft = ibd.calibMatLeft;
 	    Mat kright = ibd.calibMatRight;
@@ -138,7 +140,8 @@ This example uses OpenCv:
 	    int height = iip.left_resy;
 
 	    double resize_factor = 2.;
-
+	
+	    //set the parameters for the stereo calibration system
 	    complete_stereo_calib_params cscp_general;
 	    cscp_general.baseline = 67;//in mm
 	    cscp_general.left_cam_resx = width/resize_factor;
@@ -156,6 +159,9 @@ This example uses OpenCv:
 
 	    complete_stereo_calib csc(cscp_general);
 
+	    //since this stereo rig has no encoders we pass zeros as measurements to the stereo calibration system
+	    Mat stereo_encoders = Mat::zeros(6,1,CV_64F);
+
 	    while(1)
 	    {
 		cap2 >> right;
@@ -168,16 +174,17 @@ This example uses OpenCv:
 		resize(ibd.rectifiedLeftImage, left_rz, Size(left.cols/resize_factor,left.rows/resize_factor));
 		resize(ibd.rectifiedRightImage, right_rz, Size(right.cols/resize_factor,right.rows/resize_factor));
 
-		Mat stereo_encoders = Mat::zeros(6,1,CV_64F);
-
 		csc.calibrate(left_rz, right_rz, stereo_encoders);
 
-		//get transformations
+		//get the calibrated transformations between the two cameras
 		complete_stereo_calib_data cscd =  csc.get_calibrated_transformations(stereo_encoders);
+
+		//obtain and show the disparity map
 		complete_stereo_disparity_data csdd = csc.complete_stereo_calib::get_disparity_map(left_rz, right_rz, stereo_encoders);
         	imshow("disparity", csdd.disparity_image);
 		waitKey(1)
 
+		//show the transformation between the left and right images
 		cout << "Transformation from left to right camera: " << cscd.transformation_left_cam_to_right_cam << endl;
 		
 	    }
