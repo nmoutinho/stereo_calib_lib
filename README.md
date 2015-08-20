@@ -7,4 +7,6 @@ This system should be left running during operation and provides the calibrated 
 
 # Installation
 
+First you should download the repository by doing:
 
+>> git clone https://github.com/nmoutinho/stereo_calib_lib.git
