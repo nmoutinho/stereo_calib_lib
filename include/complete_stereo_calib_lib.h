@@ -88,11 +88,16 @@ class complete_stereo_calib {
 		complete_stereo_calib(complete_stereo_calib_params cscp_general_);
 
         // -------> cameras_encoders = [left_y, right_y, left_x, right_x, left_z, right_z]'
-		void calibrate(cv::Mat image_left, cv::Mat image_right, cv::Mat cameras_encoders);
-		void calibrate(std::vector<Feature> features_left, std::vector<Feature> features_right, cv::Mat cameras_encoders);
+		void calibrate(const cv::Mat image_left, const cv::Mat image_right, const cv::Mat cameras_encoders);
+		void calibrate(std::vector<Feature> features_left, std::vector<Feature> features_right, const cv::Mat cameras_encoders);
+
 		cv::Mat get_offsets();
+
 		complete_stereo_calib_data get_calibrated_transformations(cv::Mat cameras_encoders);
+		complete_stereo_calib_data get_calibrated_transformations();
+
         complete_stereo_disparity_data get_disparity_map(cv::Mat left_image, cv::Mat right_image, cv::Mat cameras_encoders);
+        complete_stereo_disparity_data get_disparity_map(cv::Mat left_image, cv::Mat right_image);
 
     private:
 

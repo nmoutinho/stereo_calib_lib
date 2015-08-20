@@ -69,7 +69,7 @@ complete_stereo_calib::complete_stereo_calib(complete_stereo_calib_params cscp_g
 	offset_4 = 0;
 }
 
-void complete_stereo_calib::calibrate(cv::Mat image_left, cv::Mat image_right, cv::Mat cameras_encoders)
+void complete_stereo_calib::calibrate(const cv::Mat image_left, const cv::Mat image_right, const cv::Mat cameras_encoders)
 {
     featuresSIFT get_features;
     std::vector<Feature> features_left;
@@ -80,7 +80,7 @@ void complete_stereo_calib::calibrate(cv::Mat image_left, cv::Mat image_right, c
     calibrate(features_left, features_right, cameras_encoders);
 }
 
-void complete_stereo_calib::calibrate(std::vector<Feature> features_left, std::vector<Feature> features_right, cv::Mat cameras_encoders)
+void complete_stereo_calib::calibrate(std::vector<Feature> features_left, std::vector<Feature> features_right, const cv::Mat cameras_encoders)
 {
     if(first_iteration)
     {
@@ -236,6 +236,12 @@ complete_stereo_calib_data complete_stereo_calib::get_calibrated_transformations
     return scd;
 }
 
+complete_stereo_calib_data complete_stereo_calib::get_calibrated_transformations()
+{
+    cv::Mat cameras_encoders = Mat::zeros(scp_general.number_measurements, 1, CV_64F);
+    return get_calibrated_transformations(cameras_encoders);
+}
+
 complete_stereo_disparity_data complete_stereo_calib::get_disparity_map(cv::Mat left_image, cv::Mat right_image, cv::Mat cameras_encoders)
 {
     complete_stereo_disparity_data sdd;
@@ -306,4 +312,10 @@ complete_stereo_disparity_data complete_stereo_calib::get_disparity_map(cv::Mat 
     Disparity.convertTo(sdd.disparity_image, CV_8U, 255/(SBM.numberOfDisparities*16.));
 
     return sdd;
+}
+
+complete_stereo_disparity_data complete_stereo_calib::get_disparity_map(cv::Mat left_image, cv::Mat right_image)
+{
+    cv::Mat cameras_encoders = Mat::zeros(scp_general.number_measurements, 1, CV_64F);
+    return get_disparity_map(left_image, right_image, cameras_encoders);
 }
