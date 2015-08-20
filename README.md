@@ -90,12 +90,14 @@ This way you can compile and link the stereo_calib_lib to your project.
 
 The system is prepared to receive to a maximum of 6 measurements from the cameras encoders. In case your system has measurements, you should include them in the follwing order:
 
- - Encoder(0): left camera ry
- - Encoder(1): right camera ry
- - Encoder(2): left camera rx
- - Encoder(3): right camera rx
- - Encoder(4): left camera rz
- - Encoder(5): right camera rz
+ - Encoder(0): left camera Ry
+ - Encoder(1): right camera Ry
+ - Encoder(2): left camera Rx
+ - Encoder(3): right camera Rx
+ - Encoder(4): left camera Rz
+ - Encoder(5): right camera Rz
+
+For all the measurements you don't have measures, leave its values as zero.
 
 ## Setting the stereo_calib_lib parameters
 
@@ -116,6 +118,10 @@ To initialize the stereo_calib_lib you have to set the parameters (complete_ster
 	- right_cam_cy: right image principal point y
 	- right_cam_fx: right image focal length x
 	- right_cam_fy: right image focal length y
+
+## Single image rectification
+
+If for some reason you need to rectify your images and remove the radial distortion before applying them to the stereo_calib_lib, you can use the imagesBase class, as shown in the follwing example.
 
 ## Example
 
