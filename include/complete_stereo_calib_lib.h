@@ -65,8 +65,7 @@ class complete_stereo_calib {
 
         cv::Mat Kleft, Kright;
 
-        double offset_0, offset_1, offset_2, offset_3, offset_4;
-        bool first_iteration, use_good_points_only;
+        bool use_good_points_only;
 
         std::vector<double> plot_data_1;
         std::vector<double> plot_data_2;

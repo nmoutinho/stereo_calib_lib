@@ -129,6 +129,90 @@ void Kinematics_stereoCameras::Apply(cv::Mat Encoders, KinTransforms &KinTr)
 	KinTr.LeftCamRefFrame_To_RightCamRefFrame = CenterToRight.clone()*CenterToLeft.clone().inv();
 }
 
+void Kinematics_stereoCameras::Baseline_to_Left(cv::Mat Encoders, cv::Mat &rot_transl) const
+{
+    Kinematics_stereoCameras kin;
+    KinTransforms KinTr;
+    kin.Apply(Encoders, KinTr);
+    Mat T = KinTr.UnifiedRefFrame_To_LeftCamRefFrame;
+
+    rot_transl = Mat::zeros(6,1,CV_64F);
+    Mat R = T(Range(0,3),Range(0,3));
+    Mat rot;
+
+    Rodrigues(R, rot);
+
+    rot_transl.at<double>(0,0) = rot.at<double>(0,0);
+    rot_transl.at<double>(1,0) = rot.at<double>(1,0);
+    rot_transl.at<double>(2,0) = rot.at<double>(2,0);
+    rot_transl.at<double>(3,0) = T.at<double>(0,3);
+    rot_transl.at<double>(4,0) = T.at<double>(1,3);
+    rot_transl.at<double>(5,0) = T.at<double>(2,3);
+}
+
+void Kinematics_stereoCameras::Baseline_to_Right(cv::Mat Encoders, cv::Mat &rot_transl) const
+{
+    Kinematics_stereoCameras kin;
+    KinTransforms KinTr;
+    kin.Apply(Encoders, KinTr);
+    Mat T =  KinTr.UnifiedRefFrame_To_RightCamRefFrame;
+
+    rot_transl = Mat::zeros(6,1,CV_64F);
+    Mat R = T(Range(0,3),Range(0,3));
+    Mat rot;
+
+    Rodrigues(R, rot);
+
+    rot_transl.at<double>(0,0) = rot.at<double>(0,0);
+    rot_transl.at<double>(1,0) = rot.at<double>(1,0);
+    rot_transl.at<double>(2,0) = rot.at<double>(2,0);
+    rot_transl.at<double>(3,0) = T.at<double>(0,3);
+    rot_transl.at<double>(4,0) = T.at<double>(1,3);
+    rot_transl.at<double>(5,0) = T.at<double>(2,3);
+}
+
+void Kinematics_stereoCameras::Left_to_Right(cv::Mat Encoders, cv::Mat &rot_transl) const
+{
+    Kinematics_stereoCameras kin;
+    KinTransforms KinTr;
+    kin.Apply(Encoders, KinTr);
+    Mat T =  KinTr.LeftCamRefFrame_To_RightCamRefFrame;
+
+    rot_transl = Mat::zeros(6,1,CV_64F);
+    Mat R = T(Range(0,3),Range(0,3));
+    Mat rot;
+
+    Rodrigues(R, rot);
+
+    rot_transl.at<double>(0,0) = rot.at<double>(0,0);
+    rot_transl.at<double>(1,0) = rot.at<double>(1,0);
+    rot_transl.at<double>(2,0) = rot.at<double>(2,0);
+    rot_transl.at<double>(3,0) = T.at<double>(0,3);
+    rot_transl.at<double>(4,0) = T.at<double>(1,3);
+    rot_transl.at<double>(5,0) = T.at<double>(2,3);
+}
+
+void Kinematics_stereoCameras::Right_to_Left(cv::Mat Encoders, cv::Mat &rot_transl) const
+{
+    Kinematics_stereoCameras kin;
+    KinTransforms KinTr;
+    kin.Apply(Encoders, KinTr);
+    Mat T =  KinTr.LeftCamRefFrame_To_RightCamRefFrame.inv();
+
+    rot_transl = Mat::zeros(6,1,CV_64F);
+    Mat R = T(Range(0,3),Range(0,3));
+    Mat rot;
+
+    Rodrigues(R, rot);
+
+    rot_transl.at<double>(0,0) = rot.at<double>(0,0);
+    rot_transl.at<double>(1,0) = rot.at<double>(1,0);
+    rot_transl.at<double>(2,0) = rot.at<double>(2,0);
+    rot_transl.at<double>(3,0) = T.at<double>(0,3);
+    rot_transl.at<double>(4,0) = T.at<double>(1,3);
+    rot_transl.at<double>(5,0) = T.at<double>(2,3);
+}
+
 //Rotation Matrix
 cv::Mat RotationMatrixX(double rx)
 {

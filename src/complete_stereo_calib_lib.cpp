@@ -24,9 +24,9 @@ complete_stereo_calib::complete_stereo_calib(complete_stereo_calib_params cscp_g
     scp_general.right_cam_cy = cscp_general.right_cam_cy;
     scp_general.right_cam_fx = cscp_general.right_cam_fx;
     scp_general.right_cam_fy = cscp_general.right_cam_fy;
-    scp_general.encoders_measurements_noise = 0.025; //0.0000000174;
+    scp_general.encoders_measurements_noise = 0.0000000174; //0.0000000174;
     scp_general.encoders_state_noise = 0.5; //1.0;
-    scp_general.encoders_transition_noise = 0.025; //0.025;
+    scp_general.encoders_transition_noise = 0.01; //0.025;
     scp_general.features_measurements_noise = 5/(resize_factor*resize_factor); //5;
     scp_general.matching_threshold = 0.3; //0.25;
     scp_general.max_number_of_features = 100;
@@ -58,15 +58,7 @@ complete_stereo_calib::complete_stereo_calib(complete_stereo_calib_params cscp_g
 
     sc.initialize(scp);
 
-    first_iteration = true;
     use_good_points_only = false;
-
-    // OFFSETS - [ 0: LEFT_Y | 1: RIGHT_Y | 2: LEFT_X | 3: LEFT_Z | 4: RIGHT_Z ]
-    offset_0 = 0;
-	offset_1 = 0;
-	offset_2 = 0;
-	offset_3 = 0;
-	offset_4 = 0;
 }
 
 void complete_stereo_calib::calibrate(const cv::Mat image_left, const cv::Mat image_right, const cv::Mat cameras_encoders)
@@ -82,22 +74,14 @@ void complete_stereo_calib::calibrate(const cv::Mat image_left, const cv::Mat im
 
 void complete_stereo_calib::calibrate(std::vector<Feature> features_left, std::vector<Feature> features_right, const cv::Mat cameras_encoders)
 {
-    if(first_iteration)
-    {
-        offset_0 = cameras_encoders.at<double>(0,0);
-        offset_1 = cameras_encoders.at<double>(1,0);
-        offset_2 = cameras_encoders.at<double>(2,0);
-        offset_3 = cameras_encoders.at<double>(4,0);
-        offset_4 = cameras_encoders.at<double>(5,0);
 
-        first_iteration = false;
-    }
-
-    Mat offsets_covariance = sc.get_offsets_covariance();
+    Mat offsets_covariance = sc.get_offsets_covariance().diag();
+    Mat offset_std;
+    sqrt(offsets_covariance, offset_std);
 
     double min, max;
-    minMaxLoc(offsets_covariance, &min, &max);
-    double updated_encoders_measurements_noise = sqrt(max);
+    minMaxLoc(offset_std, &min, &max);
+    double updated_encoders_measurements_noise = max;
 
     double uncertainty = updated_encoders_measurements_noise/scp_general.encoders_state_noise;
     if(uncertainty <= 0.1)
@@ -123,24 +107,11 @@ void complete_stereo_calib::calibrate(std::vector<Feature> features_left, std::v
     {
         sc.calibrate(good_features_left, good_features_right, cameras_encoders);
     }
-
-    offset_0 = sc.get_offsets().at<double>(0,0);
-    offset_1 = sc.get_offsets().at<double>(1,0);
-    offset_2 = sc.get_offsets().at<double>(2,0);
-    offset_3 = sc.get_offsets().at<double>(3,0);
-    offset_4 = sc.get_offsets().at<double>(4,0);
 }
 
 Mat complete_stereo_calib::get_offsets()
 {
-    Mat offsets(5,1,CV_64F);
-    offsets.at<double>(0,0) = offset_0;
-    offsets.at<double>(1,0) = offset_1;
-    offsets.at<double>(2,0) = offset_2;
-    offsets.at<double>(3,0) = offset_3;
-    offsets.at<double>(4,0) = offset_4;
-
-    return offsets;
+    return sc.get_offsets();
 }
 
 void complete_stereo_calib::good_points_only(std::vector<Feature> features_left, std::vector<Feature> features_right,
