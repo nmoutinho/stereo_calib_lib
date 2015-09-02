@@ -27,7 +27,7 @@ complete_stereo_calib::complete_stereo_calib(complete_stereo_calib_params cscp_g
     scp_general.encoders_measurements_noise = 0.0000000174; //0.0000000174;
     scp_general.encoders_state_noise = 0.5; //1.0;
     scp_general.encoders_transition_noise = 0.05; //0.025;
-    scp_general.features_measurements_noise = 10/(resize_factor*resize_factor); //5;
+    scp_general.features_measurements_noise = 5/(resize_factor*resize_factor); //5;
     scp_general.matching_threshold = 0.3; //0.25;
     scp_general.max_number_of_features = 100;
     scp_general.min_number_of_features = 1;
@@ -85,11 +85,11 @@ void complete_stereo_calib::calibrate(std::vector<Feature> features_left, std::v
 
     double uncertainty = updated_encoders_measurements_noise/scp_general.encoders_state_noise;
 
-    if(uncertainty <= 0.2 && !use_good_points_only)
+    /*if(uncertainty <= 0.2 && !use_good_points_only)
     {
-        use_good_points_only = true;//*/
+        use_good_points_only = true;
         cout << "good points only" << endl;
-    }
+    }//*/
 
 
     //cout << "using good points: " << use_good_points_only << endl;
@@ -150,7 +150,7 @@ cv::Mat Kleft, cv::Mat Kright, cv::Mat T_Unified_2_left, cv::Mat T_Unified_2_rig
 
     double w=0;
     //double max_z=500; //1500;
-    double good_ratio = 0.25;
+    double good_ratio = 0.1;
 
     double baseline_z_ratio = scp_general.baseline/abs(z);
     double x_z_ratio = abs(x)/abs(z);
