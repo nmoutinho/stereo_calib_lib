@@ -84,8 +84,9 @@ void complete_stereo_calib::calibrate(std::vector<Feature> features_left, std::v
     double updated_encoders_measurements_noise = max;
 
     double uncertainty = updated_encoders_measurements_noise/scp_general.encoders_state_noise;
+
     if(uncertainty <= 0.1)
-        use_good_points_only = true;
+        use_good_points_only = true;//*/
 
     //cout << "using good points: " << use_good_points_only << endl;
     //cout << "covariance: " << updated_encoders_measurements_noise*180/CV_PI << endl;
