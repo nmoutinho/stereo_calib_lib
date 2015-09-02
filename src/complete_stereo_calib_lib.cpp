@@ -26,8 +26,8 @@ complete_stereo_calib::complete_stereo_calib(complete_stereo_calib_params cscp_g
     scp_general.right_cam_fy = cscp_general.right_cam_fy;
     scp_general.encoders_measurements_noise = 0.0000000174; //0.0000000174;
     scp_general.encoders_state_noise = 0.5; //1.0;
-    scp_general.encoders_transition_noise = 0.01; //0.025;
-    scp_general.features_measurements_noise = 5/(resize_factor*resize_factor); //5;
+    scp_general.encoders_transition_noise = 0.05; //0.025;
+    scp_general.features_measurements_noise = 10/(resize_factor*resize_factor); //5;
     scp_general.matching_threshold = 0.3; //0.25;
     scp_general.max_number_of_features = 100;
     scp_general.min_number_of_features = 1;
@@ -85,8 +85,12 @@ void complete_stereo_calib::calibrate(std::vector<Feature> features_left, std::v
 
     double uncertainty = updated_encoders_measurements_noise/scp_general.encoders_state_noise;
 
-    if(uncertainty <= 0.1)
+    if(uncertainty <= 0.2 && !use_good_points_only)
+    {
         use_good_points_only = true;//*/
+        cout << "good points only" << endl;
+    }
+
 
     //cout << "using good points: " << use_good_points_only << endl;
     //cout << "covariance: " << updated_encoders_measurements_noise*180/CV_PI << endl;
@@ -145,8 +149,16 @@ cv::Mat Kleft, cv::Mat Kright, cv::Mat T_Unified_2_left, cv::Mat T_Unified_2_rig
     double z = wp.z;
 
     double w=0;
-    double a=500; //1500;
-    if(!isinf(x) && !isinf(y) && !isinf(z) && z>0 && !isnan(x) && !isnan(y) && !isnan(z) && z <= a)
+    //double max_z=500; //1500;
+    double good_ratio = 0.25;
+
+    double baseline_z_ratio = scp_general.baseline/abs(z);
+    double x_z_ratio = abs(x)/abs(z);
+    double y_z_ratio = abs(y)/abs(z);
+
+
+    //if(!isinf(x) && !isinf(y) && !isinf(z) && z>0 && !isnan(x) && !isnan(y) && !isnan(z) && z <= max_z && x_z_ratio > good_ratio && y_z_ratio > good_ratio)
+    if(!isinf(x) && !isinf(y) && !isinf(z) && z>0 && !isnan(x) && !isnan(y) && !isnan(z) && baseline_z_ratio > good_ratio)
     {
         w = 1.;
     }
