@@ -19,6 +19,8 @@ cv::Mat kleft, cv::Mat kright, int image_w, int image_h, cv::Mat T_1to2, int num
     int max_distance = 10000;
     srand (time(NULL));
 
+    Mat images = Mat::zeros(image_h, image_w, CV_8UC3);
+
     for(int n=0; n<numberFeatures; n++)
     {
         Mat left_point = Mat::ones(4,1,CV_64F);
@@ -68,10 +70,10 @@ cv::Mat kleft, cv::Mat kright, int image_w, int image_h, cv::Mat T_1to2, int num
         }
         else
         {
-            int max_x_y = 2*max_distance;
-            x = (rand() % max_x_y)-max_x_y/2;
-            y = (rand() % max_x_y)-max_x_y/2;
-            z = (rand() % max_distance)+min_distance;
+            int max_x_y = 5*max_distance;
+            x = (rand() % max_x_y)-double(max_x_y)/2;
+            y = (rand() % max_x_y)-double(max_x_y)/2;
+            z = max_distance; //(rand() % max_distance)+min_distance;
         }
 
         left_point.at<double>(0,0) = x;
@@ -94,9 +96,9 @@ cv::Mat kleft, cv::Mat kright, int image_w, int image_h, cv::Mat T_1to2, int num
         feat_left.Point.x = round(left_image_point.at<double>(0,0));
         feat_left.Point.y = round(left_image_point.at<double>(1,0));
 
-        int max_feature_size = 2;
-        feat_right.Point.x = round(right_image_point.at<double>(0,0) + (rand() %max_feature_size)-max_feature_size/2);
-        feat_right.Point.y = round(right_image_point.at<double>(1,0) + (rand() %max_feature_size)-max_feature_size/2);
+        int max_feature_size = 5;
+        feat_right.Point.x = round(right_image_point.at<double>(0,0) + (rand() %max_feature_size)-double(max_feature_size)/2);
+        feat_right.Point.y = round(right_image_point.at<double>(1,0) + (rand() %max_feature_size)-double(max_feature_size)/2);
 
         if(feat_left.Point.x > 0 && feat_left.Point.x < image_w &&
         feat_left.Point.y > 0 && feat_left.Point.y < image_h &&
@@ -105,8 +107,15 @@ cv::Mat kleft, cv::Mat kright, int image_w, int image_h, cv::Mat T_1to2, int num
         {
             Features1.push_back(feat_left);
             Features2.push_back(feat_right);
+
+            circle(images, feat_left.Point, 2, Scalar(0,255,0));
+            circle(images, feat_right.Point, 2, Scalar(0,0,255));
+
         }
 
     }
+
+    /*imshow("images", images);
+    waitKey(1);//*/
 
 }
