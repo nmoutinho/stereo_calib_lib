@@ -18,7 +18,6 @@ spherical_stereo_calib::spherical_stereo_calib(spherical_stereo_calib_params ssc
     matching_threshold = 0.3;
     max_number_of_features = 200;
     min_number_of_features = 1;
-    number_measurements = 6;
 
     Kleft = Mat::eye(3,3,CV_64F);
     Kleft.at<double>(0,0) = sscp_general_.left_cam_fx;
@@ -32,21 +31,21 @@ spherical_stereo_calib::spherical_stereo_calib(spherical_stereo_calib_params ssc
     Kright.at<double>(0,2) = sscp_general_.right_cam_cx;
     Kright.at<double>(1,2) = sscp_general_.right_cam_cy;
 
-    number_fixed_state_params = 6;
+    number_fixed_state_params = 5;
 
     csc.Num_Fix_State_Params = number_fixed_state_params;
 
     //set the filter parameters
     X = Mat::zeros(number_fixed_state_params,1,CV_64F);
-    X.at<double>(0,0) = -1; //tx initialized with -1
+    //X.at<double>(0,0) = -1; //tx initialized with -1
 
     P = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F);
     P.at<double>(0,0) = translation_state_noise*translation_state_noise;
     P.at<double>(1,1) = translation_state_noise*translation_state_noise;
-    P.at<double>(2,2) = translation_state_noise*translation_state_noise;
+    P.at<double>(2,2) = rotation_state_noise*rotation_state_noise;
     P.at<double>(3,3) = rotation_state_noise*rotation_state_noise;
     P.at<double>(4,4) = rotation_state_noise*rotation_state_noise;
-    P.at<double>(5,5) = rotation_state_noise*rotation_state_noise;
+    //P.at<double>(5,5) = rotation_state_noise*rotation_state_noise;
 
     csc.X_k = X.clone();
     csc.P_k = P;
@@ -55,10 +54,10 @@ spherical_stereo_calib::spherical_stereo_calib(spherical_stereo_calib_params ssc
     Mat Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F);
     Q.at<double>(0,0) = translation_transition_noise*translation_transition_noise;
     Q.at<double>(1,1) = translation_transition_noise*translation_transition_noise;
-    Q.at<double>(2,2) = translation_transition_noise*translation_transition_noise;
+    Q.at<double>(2,2) = rotation_transition_noise*rotation_transition_noise;
     Q.at<double>(3,3) = rotation_transition_noise*rotation_transition_noise;
     Q.at<double>(4,4) = rotation_transition_noise*rotation_transition_noise;
-    Q.at<double>(5,5) = rotation_transition_noise*rotation_transition_noise;
+    //Q.at<double>(5,5) = rotation_transition_noise*rotation_transition_noise;
     csc.Q = Q;
 
     //set the camera intrinsic parameters
@@ -147,19 +146,22 @@ spherical_stereo_calib_data spherical_stereo_calib::get_calibrated_transformatio
     Mat X = csc.X_k.clone();
 
     Mat rot_LeftToRightKplus1 = Mat::zeros(3,1, CV_64F);
-	rot_LeftToRightKplus1.at<double>(0,0) = X.clone().at<double>(3,0);
-	rot_LeftToRightKplus1.at<double>(1,0) = X.clone().at<double>(4,0);
-	rot_LeftToRightKplus1.at<double>(2,0) = X.clone().at<double>(5,0);
+	rot_LeftToRightKplus1.at<double>(0,0) = X.clone().at<double>(2,0);
+	rot_LeftToRightKplus1.at<double>(1,0) = X.clone().at<double>(3,0);
+	rot_LeftToRightKplus1.at<double>(2,0) = X.clone().at<double>(4,0);
 
 	Mat R_LeftToRightKplus1;
 	Rodrigues(rot_LeftToRightKplus1, R_LeftToRightKplus1);
 
 	Mat t_LeftToRightKplus1 = Mat::zeros(3,1,CV_64F);
-	t_LeftToRightKplus1.at<double>(0,0) = X.at<double>(0,0);
-	t_LeftToRightKplus1.at<double>(1,0) = X.at<double>(1,0);
-	t_LeftToRightKplus1.at<double>(2,0) = X.at<double>(2,0);
+	double ty = X.at<double>(0,0);
+	double tz = X.at<double>(1,0);
 
-	t_LeftToRightKplus1 = t_LeftToRightKplus1.clone()/norm(t_LeftToRightKplus1.clone())*baseline;
+	t_LeftToRightKplus1.at<double>(0,0) = -sqrt(1 - ty*ty - tz*tz)*baseline;
+	t_LeftToRightKplus1.at<double>(1,0) = ty*baseline;
+	t_LeftToRightKplus1.at<double>(2,0) = tz*baseline;
+
+	//t_LeftToRightKplus1 = t_LeftToRightKplus1.clone()/norm(t_LeftToRightKplus1.clone())*baseline;
 
 	Mat T_LeftToRightKplus1 = Mat::eye(4,4,CV_64F);
 	for (int r=0; r<3; r++)

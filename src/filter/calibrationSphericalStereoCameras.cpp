@@ -124,16 +124,16 @@ cv::Mat calibrationSphericalStereoCameras::dG_dZ(const cv::Mat &X_k, const cv::M
 void calibrationSphericalStereoCameras::G_F(cv::Mat X, cv::Mat Z_FLkplus1, cv::Mat Z_FRkplus1, cv::Mat &Output) const{
 
 	Mat rot_LeftToRightKplus1 = Mat::zeros(3,1,  CV_64F);
-	rot_LeftToRightKplus1.at<double>(0,0) = X.clone().at<double>(3,0);
-	rot_LeftToRightKplus1.at<double>(1,0) = X.clone().at<double>(4,0);
-	rot_LeftToRightKplus1.at<double>(2,0) = X.clone().at<double>(5,0);
+	rot_LeftToRightKplus1.at<double>(0,0) = X.clone().at<double>(2,0);
+	rot_LeftToRightKplus1.at<double>(1,0) = X.clone().at<double>(3,0);
+	rot_LeftToRightKplus1.at<double>(2,0) = X.clone().at<double>(4,0);
 
 	Mat R_LeftToRightKplus1;
 	Rodrigues(rot_LeftToRightKplus1, R_LeftToRightKplus1);
 
-    double x_lkp1_rkp1 = X.clone().at<double>(0,0);
-    double y_lkp1_rkp1 = X.clone().at<double>(1,0);
-    double z_lkp1_rkp1 = X.clone().at<double>(2,0);
+    double y_lkp1_rkp1 = X.clone().at<double>(0,0);
+    double z_lkp1_rkp1 = X.clone().at<double>(1,0);
+    double x_lkp1_rkp1 = -sqrt(1 - y_lkp1_rkp1*y_lkp1_rkp1 - z_lkp1_rkp1*z_lkp1_rkp1);
 
     Mat Tx_LeftToRightKplus1 = Mat::zeros(3,3,CV_64F);
     //Mat Tx_RightToLeftKplus1 = Mat::zeros(3,3,CV_64F);
