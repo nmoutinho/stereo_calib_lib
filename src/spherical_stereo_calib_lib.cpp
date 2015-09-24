@@ -14,7 +14,7 @@ spherical_stereo_calib::spherical_stereo_calib(spherical_stereo_calib_params ssc
     rotation_state_noise = 0.5;
     translation_transition_noise = 0.1;
     rotation_transition_noise = 0.05;
-    features_measurements_noise = 25; // /(resize_factor*resize_factor); //5;
+    features_measurements_noise = 10/(resize_factor*resize_factor); //5;
     matching_threshold = 0.3;
     max_number_of_features = 200;
     min_number_of_features = 1;
