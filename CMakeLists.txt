@@ -9,13 +9,15 @@ file(GLOB CPP_FILES	${PROJECT_SOURCE_DIR}/src/*.cpp
 			${PROJECT_SOURCE_DIR}/src/features/*.cpp
 			${PROJECT_SOURCE_DIR}/src/filter/*.cpp
 			${PROJECT_SOURCE_DIR}/src/images/*.cpp
-			${PROJECT_SOURCE_DIR}/src/plot/*.cpp)
+			${PROJECT_SOURCE_DIR}/src/plot/*.cpp
+			${PROJECT_SOURCE_DIR}/src/tools/*.cpp)
 
 file(GLOB HEADER_FILES 	${PROJECT_SOURCE_DIR}/include/*.h
 			${PROJECT_SOURCE_DIR}/include/features/*.h
 			${PROJECT_SOURCE_DIR}/include/filter/*.h
 			${PROJECT_SOURCE_DIR}/include/images/*.h
-			${PROJECT_SOURCE_DIR}/include/plot/*.hpp)
+			${PROJECT_SOURCE_DIR}/include/plot/*.hpp
+			${PROJECT_SOURCE_DIR}/include/tools/*.h)
 
 SOURCE_GROUP("Source Files" FILES ${CPP_FILES})
 SOURCE_GROUP("Header Files" FILES ${HEADER_FILES})
