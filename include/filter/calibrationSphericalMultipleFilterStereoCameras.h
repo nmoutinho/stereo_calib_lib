@@ -59,7 +59,7 @@ class calibrationSphericalMultipleFilterStereoCameras: public EKF {
 	public:
 
 		//Sub function for the innovation - Features
-		void G_F(cv::Mat X, cv::Mat Z_FLkplus1, cv::Mat Z_FRkplus1, cv::Mat &Output) const;
+		void G_F(cv::Mat X, cv::Mat Z_Tr_Rot, cv::Mat Z_FLkplus1, cv::Mat Z_FRkplus1, cv::Mat &Output) const;
 };
 
 #endif

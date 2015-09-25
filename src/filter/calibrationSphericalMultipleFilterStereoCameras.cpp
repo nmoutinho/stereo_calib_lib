@@ -29,31 +29,41 @@ Mat calibrationSphericalMultipleFilterStereoCameras::G(Mat X_k, Mat Z) const{
 
 	int Num_Fix_Measurements = 0;
 
+    Mat Z_Tr_Rot = Mat::zeros(4,1,CV_64F);
 	Mat Z_FLkplus1 = Mat::zeros(2*NumPoints,1,CV_64F);
 	Mat Z_FRkplus1 = Mat::zeros(2*NumPoints,1,CV_64F);
 	if(Flag_Cameras_Measurements){
 
+	    for(int i=0; i<4; i++)
+        {
+            Z_Tr_Rot.at<double>(i,0) = Z.at<double>(Num_Fix_Measurements + i,0);
+        }
+        Num_Fix_Measurements = Num_Fix_Measurements + 4;
+
 		for(int i=0; i<NumPoints; i++){
 
-			Z_FLkplus1.at<double>(2*i,0) = Z.at<double>(Num_Fix_Measurements + 2*i,0);
-			Z_FLkplus1.at<double>(2*i+1,0) = Z.at<double>(Num_Fix_Measurements + 2*i+1,0);
+			Z_FLkplus1.at<double>(2*i,0) = Z.at<double>(Num_Fix_Measurements + 4*i,0);
+			Z_FLkplus1.at<double>(2*i+1,0) = Z.at<double>(Num_Fix_Measurements + 4*i + 1,0);
+			Z_FRkplus1.at<double>(2*i,0) = Z.at<double>(Num_Fix_Measurements + 4*i + 2,0);
+			Z_FRkplus1.at<double>(2*i+1,0) = Z.at<double>(Num_Fix_Measurements + 4*i + 3,0);
 
 		}
-		Num_Fix_Measurements = Num_Fix_Measurements + 2*NumPoints;
+		//Num_Fix_Measurements = Num_Fix_Measurements + 2*NumPoints;
+		Num_Fix_Measurements = Num_Fix_Measurements + 4*NumPoints;
 
-		for(int i=0; i<NumPoints; i++){
+		/*for(int i=0; i<NumPoints; i++){
 
 			Z_FRkplus1.at<double>(2*i,0) = Z.at<double>(Num_Fix_Measurements + 2*i,0);
 			Z_FRkplus1.at<double>(2*i+1,0) = Z.at<double>(Num_Fix_Measurements + 2*i+1,0);
 
 		}
-		Num_Fix_Measurements = Num_Fix_Measurements + 2*NumPoints;
+		Num_Fix_Measurements = Num_Fix_Measurements + 2*NumPoints;//*/
 	}
 
 	//Innovation for the image points
 	if(Flag_Cameras_Measurements)
 	{
-		calibrationSphericalMultipleFilterStereoCameras::G_F(X_k, Z_FLkplus1, Z_FRkplus1, Inn);
+		calibrationSphericalMultipleFilterStereoCameras::G_F(X_k, Z_Tr_Rot, Z_FLkplus1, Z_FRkplus1, Inn);
 	}
 
 	return Inn;
@@ -72,30 +82,43 @@ cv::Mat calibrationSphericalMultipleFilterStereoCameras::dG_dZ(const cv::Mat &X_
 
 	int Num_Fix_Measurements = 0;
 
+    Mat Z_Tr_Rot = Mat::zeros(4,1,CV_64F);
 	Mat Z_FLkplus1 = Mat::zeros(2*NumPoints,1,CV_64F);
 	Mat Z_FRkplus1 = Mat::zeros(2*NumPoints,1,CV_64F);
 	if(Flag_Cameras_Measurements){
 
+        for(int i=0; i<4; i++)
+        {
+            Z_Tr_Rot.at<double>(i,0) = Z_k.at<double>(Num_Fix_Measurements + i,0);
+        }
+        Num_Fix_Measurements = Num_Fix_Measurements + 4;
+
 		for(int i=0; i<NumPoints; i++){
 
-			Z_FLkplus1.at<double>(2*i,0) = Z_k.at<double>(Num_Fix_Measurements + 2*i,0);
-			Z_FLkplus1.at<double>(2*i+1,0) = Z_k.at<double>(Num_Fix_Measurements + 2*i+1,0);
+			Z_FLkplus1.at<double>(2*i,0) = Z_k.at<double>(Num_Fix_Measurements + 4*i,0);
+			Z_FLkplus1.at<double>(2*i+1,0) = Z_k.at<double>(Num_Fix_Measurements + 4*i + 1,0);
+			Z_FRkplus1.at<double>(2*i,0) = Z_k.at<double>(Num_Fix_Measurements + 4*i + 2,0);
+			Z_FRkplus1.at<double>(2*i+1,0) = Z_k.at<double>(Num_Fix_Measurements + 4*i + 3,0);
 		}
-		Num_Fix_Measurements = Num_Fix_Measurements + 2*NumPoints;
+		//Num_Fix_Measurements = Num_Fix_Measurements + 2*NumPoints;
+		Num_Fix_Measurements = Num_Fix_Measurements + 4*NumPoints;
 
-		for(int i=0; i<NumPoints; i++){
+		/*for(int i=0; i<NumPoints; i++){
 
 			Z_FRkplus1.at<double>(2*i,0) = Z_k.at<double>(Num_Fix_Measurements + 2*i,0);
 			Z_FRkplus1.at<double>(2*i+1,0) = Z_k.at<double>(Num_Fix_Measurements + 2*i+1,0);
 		}
-		Num_Fix_Measurements = Num_Fix_Measurements + 2*NumPoints;
+		Num_Fix_Measurements = Num_Fix_Measurements + 2*NumPoints;//*/
 	}
 
 	Mat dG_dZ = Mat::zeros(Flag_Cameras_Measurements*NumPoints,Z_k.rows,CV_64F);
-	//Mat dG_dZ = Mat::zeros(Flag_Encoders_Measurements*Flag_Cameras_Measurements*1,Z_k.rows,CV_64F);
-	Mat tmp;
 
 	if(Flag_Cameras_Measurements){
+
+	    //dGF_dZEk+1
+        Mat dg_dTr_Rot = dG_dZ(Range(0,NumPoints),Range(0,4));
+        //tmp=dG_dZ(Range(0,1),Range(0, NumEncodersMeasurements));
+        Diff(boost::bind(& calibrationSphericalMultipleFilterStereoCameras::G_F, this, X_k, _1, Z_FLkplus1, Z_FRkplus1, _2), Z_Tr_Rot, dg_dTr_Rot);
 
         //dGF_dZFLk+1
         Mat dg_dFL, dg_dFR;
@@ -103,8 +126,8 @@ cv::Mat calibrationSphericalMultipleFilterStereoCameras::dG_dZ(const cv::Mat &X_
         Mat Z_FR_k(2,1,CV_64F);
         for(int k=0; k<NumPoints; k++)
         {
-            dg_dFL = dG_dZ(Range(k,k+1),Range(2*k, 2*k+1+1));
-            dg_dFR = dG_dZ(Range(k,k+1),Range(2*NumPoints+2*k, 2*NumPoints+2*k+1+1));
+            dg_dFL = dG_dZ(Range(k,k+1),Range(4 + 2*k, 4 + 2*k+1+1));
+            dg_dFR = dG_dZ(Range(k,k+1),Range(4 + 2*NumPoints+2*k, 4 + 2*NumPoints+2*k+1+1));
 
             Z_FL_k.at<double>(0,0) = Z_FLkplus1.at<double>(2*k,0);
             Z_FL_k.at<double>(1,0) = Z_FLkplus1.at<double>(2*k+1,0);
@@ -112,8 +135,8 @@ cv::Mat calibrationSphericalMultipleFilterStereoCameras::dG_dZ(const cv::Mat &X_
             Z_FR_k.at<double>(0,0) = Z_FRkplus1.at<double>(2*k,0);
             Z_FR_k.at<double>(1,0) = Z_FRkplus1.at<double>(2*k+1,0);
 
-            Diff(boost::bind(& calibrationSphericalMultipleFilterStereoCameras::G_F, this, X_k, _1, Z_FR_k, _2), Z_FL_k, dg_dFL);
-            Diff(boost::bind(& calibrationSphericalMultipleFilterStereoCameras::G_F, this, X_k, Z_FL_k, _1, _2), Z_FR_k, dg_dFR);
+            Diff(boost::bind(& calibrationSphericalMultipleFilterStereoCameras::G_F, this, X_k, Z_Tr_Rot, _1, Z_FR_k, _2), Z_FL_k, dg_dFL);
+            Diff(boost::bind(& calibrationSphericalMultipleFilterStereoCameras::G_F, this, X_k, Z_Tr_Rot, Z_FL_k, _1, _2), Z_FR_k, dg_dFR);
         }
 	}//*/
 
@@ -121,18 +144,72 @@ cv::Mat calibrationSphericalMultipleFilterStereoCameras::dG_dZ(const cv::Mat &X_
 }
 
 //Sub function for the innovation - Features
-void calibrationSphericalMultipleFilterStereoCameras::G_F(cv::Mat X, cv::Mat Z_FLkplus1, cv::Mat Z_FRkplus1, cv::Mat &Output) const{
+void calibrationSphericalMultipleFilterStereoCameras::G_F(cv::Mat X, cv::Mat Z_Tr_Rot, cv::Mat Z_FLkplus1, cv::Mat Z_FRkplus1, cv::Mat &Output) const{
+
+
+    double ty, tz, rx, ry, rz;
+
+    //if we are estimating ty
+    if(id_variable_to_estimate == 0)
+    {
+        ty = X.clone().at<double>(0,0);
+
+        tz = Z_Tr_Rot.at<double>(0,0);
+        rx = Z_Tr_Rot.at<double>(1,0);
+        ry = Z_Tr_Rot.at<double>(2,0);
+        rz = Z_Tr_Rot.at<double>(3,0);
+    }
+    //if we are estimating tz
+    else if(id_variable_to_estimate == 1)
+    {
+        tz = X.clone().at<double>(0,0);
+
+        ty = Z_Tr_Rot.at<double>(0,0);
+        rx = Z_Tr_Rot.at<double>(1,0);
+        ry = Z_Tr_Rot.at<double>(2,0);
+        rz = Z_Tr_Rot.at<double>(3,0);
+    }
+    //if we are estimating rx
+    else if(id_variable_to_estimate == 2)
+    {
+        rx = X.clone().at<double>(0,0);
+
+        ty = Z_Tr_Rot.at<double>(0,0);
+        tz = Z_Tr_Rot.at<double>(1,0);
+        ry = Z_Tr_Rot.at<double>(2,0);
+        rz = Z_Tr_Rot.at<double>(3,0);
+    }
+    //if we are estimating ry
+    else if(id_variable_to_estimate == 3)
+    {
+        ry = X.clone().at<double>(0,0);
+
+        ty = Z_Tr_Rot.at<double>(0,0);
+        tz = Z_Tr_Rot.at<double>(1,0);
+        rx = Z_Tr_Rot.at<double>(2,0);
+        rz = Z_Tr_Rot.at<double>(3,0);
+    }
+    //if we are estimating rz
+    else if(id_variable_to_estimate == 4)
+    {
+        rz = X.clone().at<double>(0,0);
+
+        ty = Z_Tr_Rot.at<double>(0,0);
+        tz = Z_Tr_Rot.at<double>(1,0);
+        rx = Z_Tr_Rot.at<double>(2,0);
+        ry = Z_Tr_Rot.at<double>(3,0);
+    }
 
 	Mat rot_LeftToRightKplus1 = Mat::zeros(3,1,  CV_64F);
-	rot_LeftToRightKplus1.at<double>(0,0) = X.clone().at<double>(2,0);
-	rot_LeftToRightKplus1.at<double>(1,0) = X.clone().at<double>(3,0);
-	rot_LeftToRightKplus1.at<double>(2,0) = X.clone().at<double>(4,0);
+	rot_LeftToRightKplus1.at<double>(0,0) = rx;
+	rot_LeftToRightKplus1.at<double>(1,0) = ry;
+	rot_LeftToRightKplus1.at<double>(2,0) = rz;
 
 	Mat R_LeftToRightKplus1;
 	Rodrigues(rot_LeftToRightKplus1, R_LeftToRightKplus1);
 
-    double y_lkp1_rkp1 = X.clone().at<double>(0,0);
-    double z_lkp1_rkp1 = X.clone().at<double>(1,0);
+    double y_lkp1_rkp1 = ty;
+    double z_lkp1_rkp1 = tz;
     double x_lkp1_rkp1 = -sqrt(1 - y_lkp1_rkp1*y_lkp1_rkp1 - z_lkp1_rkp1*z_lkp1_rkp1);
 
     Mat Tx_LeftToRightKplus1 = Mat::zeros(3,3,CV_64F);

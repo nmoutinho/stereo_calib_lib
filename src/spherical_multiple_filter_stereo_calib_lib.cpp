@@ -6,6 +6,7 @@ using namespace cv;
 spherical_multiple_filter_stereo_calib::spherical_multiple_filter_stereo_calib(spherical_multiple_filter_stereo_calib_params sscp_general_)
 {
     //the standard image is 320x240
+    sscp_general = sscp_general_;
     double resize_factor = 320./sscp_general_.left_cam_resx;
 
     baseline = sscp_general_.baseline;
@@ -14,9 +15,11 @@ spherical_multiple_filter_stereo_calib::spherical_multiple_filter_stereo_calib(s
     rotation_state_noise = 0.5;
     translation_transition_noise = 0.1;
     rotation_transition_noise = 0.05;
+    translation_measurements_noise = 0.5; //5;
+    rotation_measurements_noise = 0.1; //5;
     features_measurements_noise = 10/(resize_factor*resize_factor); //5;
     matching_threshold = 0.3;
-    max_number_of_features = 200;
+    max_number_of_features = 200; //200;
     min_number_of_features = 1;
 
     Kleft = Mat::eye(3,3,CV_64F);
@@ -31,38 +34,78 @@ spherical_multiple_filter_stereo_calib::spherical_multiple_filter_stereo_calib(s
     Kright.at<double>(0,2) = sscp_general_.right_cam_cx;
     Kright.at<double>(1,2) = sscp_general_.right_cam_cy;
 
-    number_fixed_state_params = 5;
+    number_fixed_state_params = 1;
 
-    csc.Num_Fix_State_Params = number_fixed_state_params;
+    csc_ty.id_variable_to_estimate = 0;
+    csc_tz.id_variable_to_estimate = 1;
+    csc_rx.id_variable_to_estimate = 2;
+    csc_ry.id_variable_to_estimate = 3;
+    csc_rz.id_variable_to_estimate = 4;
+
+    csc_ty.Num_Fix_State_Params = number_fixed_state_params;
+    csc_tz.Num_Fix_State_Params = number_fixed_state_params;
+    csc_rx.Num_Fix_State_Params = number_fixed_state_params;
+    csc_ry.Num_Fix_State_Params = number_fixed_state_params;
+    csc_rz.Num_Fix_State_Params = number_fixed_state_params;
 
     //set the filter parameters
-    X = Mat::zeros(number_fixed_state_params,1,CV_64F);
-    //X.at<double>(0,0) = -1; //tx initialized with -1
+    X_ty = Mat::zeros(number_fixed_state_params,1,CV_64F);
+    X_tz = Mat::zeros(number_fixed_state_params,1,CV_64F);
+    X_rx = Mat::zeros(number_fixed_state_params,1,CV_64F);
+    X_ry = Mat::zeros(number_fixed_state_params,1,CV_64F);
+    X_rz = Mat::zeros(number_fixed_state_params,1,CV_64F);
 
-    P = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F);
-    P.at<double>(0,0) = translation_state_noise*translation_state_noise;
-    P.at<double>(1,1) = translation_state_noise*translation_state_noise;
-    P.at<double>(2,2) = rotation_state_noise*rotation_state_noise;
-    P.at<double>(3,3) = rotation_state_noise*rotation_state_noise;
-    P.at<double>(4,4) = rotation_state_noise*rotation_state_noise;
-    //P.at<double>(5,5) = rotation_state_noise*rotation_state_noise;
+    P_ty = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*translation_state_noise*translation_state_noise;
+    P_tz = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*translation_state_noise*translation_state_noise;
+    P_rx = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*rotation_state_noise*rotation_state_noise;
+    P_ry = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*rotation_state_noise*rotation_state_noise;
+    P_rz = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*rotation_state_noise*rotation_state_noise;
 
-    csc.X_k = X.clone();
-    csc.P_k = P;
-    csc.U_k = Mat::zeros(1,1,CV_64F);
-    csc.Pn = Mat::zeros(1,1,CV_64F);
-    Mat Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F);
-    Q.at<double>(0,0) = translation_transition_noise*translation_transition_noise;
-    Q.at<double>(1,1) = translation_transition_noise*translation_transition_noise;
-    Q.at<double>(2,2) = rotation_transition_noise*rotation_transition_noise;
-    Q.at<double>(3,3) = rotation_transition_noise*rotation_transition_noise;
-    Q.at<double>(4,4) = rotation_transition_noise*rotation_transition_noise;
-    //Q.at<double>(5,5) = rotation_transition_noise*rotation_transition_noise;
-    csc.Q = Q;
+    csc_ty.X_k = X_ty.clone();
+    csc_tz.X_k = X_tz.clone();
+    csc_rx.X_k = X_rx.clone();
+    csc_ry.X_k = X_ry.clone();
+    csc_rz.X_k = X_rz.clone();
+
+    csc_ty.P_k = P_ty;
+    csc_tz.P_k = P_tz;
+    csc_rx.P_k = P_rx;
+    csc_ry.P_k = P_ry;
+    csc_rz.P_k = P_rz;
+
+    csc_ty.U_k = Mat::zeros(1,1,CV_64F);
+    csc_tz.U_k = Mat::zeros(1,1,CV_64F);
+    csc_rx.U_k = Mat::zeros(1,1,CV_64F);
+    csc_ry.U_k = Mat::zeros(1,1,CV_64F);
+    csc_rz.U_k = Mat::zeros(1,1,CV_64F);
+
+    csc_ty.Pn = Mat::zeros(1,1,CV_64F);
+    csc_tz.Pn = Mat::zeros(1,1,CV_64F);
+    csc_rx.Pn = Mat::zeros(1,1,CV_64F);
+    csc_ry.Pn = Mat::zeros(1,1,CV_64F);
+    csc_rz.Pn = Mat::zeros(1,1,CV_64F);
+
+    csc_ty.Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*translation_transition_noise*translation_transition_noise;
+    csc_tz.Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*translation_transition_noise*translation_transition_noise;
+    csc_rx.Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*rotation_transition_noise*rotation_transition_noise;
+    csc_ry.Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*rotation_transition_noise*rotation_transition_noise;
+    csc_rz.Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*rotation_transition_noise*rotation_transition_noise;
 
     //set the camera intrinsic parameters
-    csc.LeftCalibMat = Kleft;
-    csc.RightCalibMat = Kright;
+    csc_ty.LeftCalibMat = Kleft;
+    csc_ty.RightCalibMat = Kright;
+
+    csc_tz.LeftCalibMat = Kleft;
+    csc_tz.RightCalibMat = Kright;
+
+    csc_rx.LeftCalibMat = Kleft;
+    csc_rx.RightCalibMat = Kright;
+
+    csc_ry.LeftCalibMat = Kleft;
+    csc_ry.RightCalibMat = Kright;
+
+    csc_rz.LeftCalibMat = Kleft;
+    csc_rz.RightCalibMat = Kright;
 }
 
 void spherical_multiple_filter_stereo_calib::calibrate(const cv::Mat image_left, const cv::Mat image_right)
@@ -78,84 +121,139 @@ void spherical_multiple_filter_stereo_calib::calibrate(const cv::Mat image_left,
 
 void spherical_multiple_filter_stereo_calib::calibrate(std::vector<Feature> features_left, std::vector<Feature> features_right)
 {
-    csc.NumPoints = features_left.size();
-    //cout << "Number of features: " << csc.NumPoints << endl;
 
-    if(csc.NumPoints >= min_number_of_features)
+    int number_of_features = features_left.size();
+    if(number_of_features >= min_number_of_features)
     {
-        csc.Flag_Cameras_Measurements = true;
+        csc_ty.Flag_Cameras_Measurements = true;
+        csc_tz.Flag_Cameras_Measurements = true;
+        csc_rx.Flag_Cameras_Measurements = true;
+        csc_ry.Flag_Cameras_Measurements = true;
+        csc_rz.Flag_Cameras_Measurements = true;
     }
     else
     {
-        csc.Flag_Cameras_Measurements = false;
+        csc_ty.Flag_Cameras_Measurements = false;
+        csc_tz.Flag_Cameras_Measurements = false;
+        csc_rx.Flag_Cameras_Measurements = false;
+        csc_ry.Flag_Cameras_Measurements = false;
+        csc_rz.Flag_Cameras_Measurements = false;
     }
 
-    //Prediction
-    //boost::posix_time::ptime t0_ = boost::posix_time::microsec_clock::local_time();
-    //long t0 = t0_.time_of_day().total_milliseconds();
-    csc.Filter_Prediction();
+    csc_ty.Filter_Prediction();
+    csc_tz.Filter_Prediction();
+    csc_rx.Filter_Prediction();
+    csc_ry.Filter_Prediction();
+    csc_rz.Filter_Prediction();
 
-    //Measurements
-    //boost::posix_time::ptime t1_ = boost::posix_time::microsec_clock::local_time();
-    //long t1 = t1_.time_of_day().total_milliseconds();
-    //std::cout << "prediction: " << 1./((t1-t0)/1000.) << "Hz" << std::endl;
+    double ty_pred = csc_ty.X_k.at<double>(0,0);
+    double tz_pred = csc_tz.X_k.at<double>(0,0);
+    double rx_pred = csc_rx.X_k.at<double>(0,0);
+    double ry_pred = csc_ry.X_k.at<double>(0,0);
+    double rz_pred = csc_rz.X_k.at<double>(0,0);
 
-    Mat Z(4*csc.NumPoints*csc.Flag_Cameras_Measurements,1,CV_64F);
-    Mat Rvec = Mat::zeros(Z.rows, 1,CV_64F);
+    //use estimation variance as measurement noises
+    double ty_var = sqrt(csc_ty.P_k.at<double>(0,0));
+    double tz_var = sqrt(csc_tz.P_k.at<double>(0,0));
+    double t_var = max(ty_var, tz_var);
 
-    //if there are measurements for the cameras
-    if(csc.Flag_Cameras_Measurements){
+    double rx_var = sqrt(csc_rx.P_k.at<double>(0,0));
+    double ry_var = sqrt(csc_ry.P_k.at<double>(0,0));
+    double r_var_tmp = max(rx_var, ry_var);
 
-        Mat Z_FLKplus1 = Z(Range(0, 2*csc.NumPoints),Range::all());
-        Mat Z_FRKplus1 = Z(Range(2*csc.NumPoints, 4*csc.NumPoints),Range::all());
+    double rz_var = sqrt(csc_rz.P_k.at<double>(0,0));
+    double r_var = max(r_var_tmp, rz_var);
 
-        for(int j=0; j<csc.NumPoints; j++){
+    if(csc_ty.Flag_Cameras_Measurements)
+    {
+        filterMeasurementsStruct filter_measurements_struct = defineFiltersMeasurementsVector(ty_pred, tz_pred, rx_pred, ry_pred, rz_pred, features_left, features_right, number_of_features,
+                                                                                          t_var, r_var, features_measurements_noise);
 
-            Z_FLKplus1.at<double>(2*j,0) = features_left[j].Point.x;
-            Z_FLKplus1.at<double>(2*j+1,0) = features_left[j].Point.y;
+        csc_ty.NumPoints = (filter_measurements_struct.Z_ty.rows-4)/4;
+        csc_tz.NumPoints = (filter_measurements_struct.Z_tz.rows-4)/4;
+        csc_rx.NumPoints = (filter_measurements_struct.Z_rx.rows-4)/4;
+        csc_ry.NumPoints = (filter_measurements_struct.Z_ry.rows-4)/4;
+        csc_rz.NumPoints = (filter_measurements_struct.Z_rz.rows-4)/4;
 
-            Z_FRKplus1.at<double>(2*j,0) = features_right[j].Point.x;
-            Z_FRKplus1.at<double>(2*j+1,0) = features_right[j].Point.y;
+        cout << csc_ty.NumPoints << " " << csc_tz.NumPoints << " " << csc_rx.NumPoints << " " << csc_ry.NumPoints << " " << csc_rz.NumPoints << endl;
+
+        if(csc_ty.NumPoints < min_number_of_features)
+        {
+            csc_ty.Flag_Cameras_Measurements = false;
         }
 
-        Mat R_F = Rvec(Range(0, 4*csc.NumPoints), Range::all());
-        R_F += features_measurements_noise;
+        if(csc_tz.NumPoints < min_number_of_features)
+        {
+            csc_tz.Flag_Cameras_Measurements = false;
+        }
 
-    }//*/
+        if(csc_rx.NumPoints < min_number_of_features)
+        {
+            csc_rx.Flag_Cameras_Measurements = false;
+        }
 
-    Mat R = Mat::eye(Rvec.rows,Rvec.rows,CV_64F);
-    for(int j=0; j<Rvec.rows; j++)
-        R.at<double>(j,j) = Rvec.at<double>(j,0)*Rvec.at<double>(j,0);
+        if(csc_ry.NumPoints < min_number_of_features)
+        {
+            csc_ry.Flag_Cameras_Measurements = false;
+        }
 
-    csc.Rn_explicit = Mat();
-    csc.Rn_implicit = R.clone();
+        if(csc_rz.NumPoints < min_number_of_features)
+        {
+            csc_rz.Flag_Cameras_Measurements = false;
+        }
 
-    //update
-    //boost::posix_time::ptime t2_ = boost::posix_time::microsec_clock::local_time();
-    //long t2 = t2_.time_of_day().total_milliseconds();
-    //std::cout << "measurements: " << 1./((t2-t1)/1000.) << "Hz" << std::endl;
+        csc_ty.Rn_explicit = Mat();
+        csc_ty.Rn_implicit = filter_measurements_struct.R_ty.clone();
 
-    if(csc.Flag_Cameras_Measurements)
-        csc.Filter_Update(Mat(), Z.clone());
+        csc_tz.Rn_explicit = Mat();
+        csc_tz.Rn_implicit = filter_measurements_struct.R_tz.clone();
+
+        csc_rx.Rn_explicit = Mat();
+        csc_rx.Rn_implicit = filter_measurements_struct.R_rx.clone();
+
+        csc_ry.Rn_explicit = Mat();
+        csc_ry.Rn_implicit = filter_measurements_struct.R_ry.clone();
+
+        csc_rz.Rn_explicit = Mat();
+        csc_rz.Rn_implicit = filter_measurements_struct.R_rz.clone();
+
+        if(csc_ty.Flag_Cameras_Measurements)
+            csc_ty.Filter_Update(Mat(), filter_measurements_struct.Z_ty.clone());
+
+        if(csc_tz.Flag_Cameras_Measurements)
+            csc_tz.Filter_Update(Mat(), filter_measurements_struct.Z_tz.clone());
+
+        if(csc_rx.Flag_Cameras_Measurements)
+            csc_rx.Filter_Update(Mat(), filter_measurements_struct.Z_rx.clone());
+
+        if(csc_ry.Flag_Cameras_Measurements)
+            csc_ry.Filter_Update(Mat(), filter_measurements_struct.Z_ry.clone());
+
+        if(csc_rz.Flag_Cameras_Measurements)
+            csc_rz.Filter_Update(Mat(), filter_measurements_struct.Z_rz.clone());
+
+    }
 }
 
 spherical_multiple_filter_stereo_calib_data spherical_multiple_filter_stereo_calib::get_calibrated_transformations()
 {
     spherical_multiple_filter_stereo_calib_data scd;
 
-    Mat X = csc.X_k.clone();
+    double ty =  csc_ty.X_k.clone().at<double>(0,0);
+    double tz =  csc_tz.X_k.clone().at<double>(0,0);
+    double rx = csc_rx.X_k.clone().at<double>(0,0);
+    double ry =  csc_ry.X_k.clone().at<double>(0,0);
+    double rz = csc_rz.X_k.clone().at<double>(0,0);
 
     Mat rot_LeftToRightKplus1 = Mat::zeros(3,1, CV_64F);
-	rot_LeftToRightKplus1.at<double>(0,0) = X.clone().at<double>(2,0);
-	rot_LeftToRightKplus1.at<double>(1,0) = X.clone().at<double>(3,0);
-	rot_LeftToRightKplus1.at<double>(2,0) = X.clone().at<double>(4,0);
+	rot_LeftToRightKplus1.at<double>(0,0) = rx;
+	rot_LeftToRightKplus1.at<double>(1,0) = ry;
+	rot_LeftToRightKplus1.at<double>(2,0) = rz;
 
 	Mat R_LeftToRightKplus1;
 	Rodrigues(rot_LeftToRightKplus1, R_LeftToRightKplus1);
 
 	Mat t_LeftToRightKplus1 = Mat::zeros(3,1,CV_64F);
-	double ty = X.at<double>(0,0);
-	double tz = X.at<double>(1,0);
 
 	t_LeftToRightKplus1.at<double>(0,0) = -sqrt(1 - ty*ty - tz*tz)*baseline;
 	t_LeftToRightKplus1.at<double>(1,0) = ty*baseline;
@@ -252,4 +350,257 @@ spherical_multiple_filter_stereo_disparity_data spherical_multiple_filter_stereo
     Disparity.convertTo(sdd.disparity_image, CV_8U, 255/(SBM.numberOfDisparities*16.));
 
     return sdd;
+}
+
+
+//functions
+filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMeasurementsVector(double ty_pred, double tz_pred, double rx_pred, double ry_pred, double rz_pred,
+                                                                 std::vector<Feature> features_left, std::vector<Feature> features_right, int number_of_features, double translation_noise,
+                                                                 double rotation_noise, double features_noise)
+{
+    filterMeasurementsStruct filter_measurements_struct;
+
+    /*filter_measurements_struct.Z_ty = Mat::zeros(4 + 4*number_of_features,1,CV_64F);
+    filter_measurements_struct.Z_tz = Mat::zeros(4 + 4*number_of_features,1,CV_64F);
+    filter_measurements_struct.Z_rx = Mat::zeros(4 + 4*number_of_features,1,CV_64F);
+    filter_measurements_struct.Z_ry = Mat::zeros(4 + 4*number_of_features,1,CV_64F);
+    filter_measurements_struct.Z_rz = Mat::zeros(4 + 4*number_of_features,1,CV_64F);//*/
+
+    Mat R_ty_vec, R_tz_vec, R_rx_vec, R_ry_vec, R_rz_vec;
+
+    /*filter_measurements_struct.R_ty = Mat::eye(4 + 4*number_of_features, 4 + 4*number_of_features, CV_64F);
+    filter_measurements_struct.R_tz = Mat::eye(4 + 4*number_of_features, 4 + 4*number_of_features, CV_64F);
+    filter_measurements_struct.R_rx = Mat::eye(4 + 4*number_of_features, 4 + 4*number_of_features, CV_64F);
+    filter_measurements_struct.R_ry = Mat::eye(4 + 4*number_of_features, 4 + 4*number_of_features, CV_64F);
+    filter_measurements_struct.R_rz = Mat::eye(4 + 4*number_of_features, 4 + 4*number_of_features, CV_64F);//*/
+
+    //for the translations and rotations
+    filter_measurements_struct.Z_ty.push_back(tz_pred);
+    filter_measurements_struct.Z_ty.push_back(rx_pred);
+    filter_measurements_struct.Z_ty.push_back(ry_pred);
+    filter_measurements_struct.Z_ty.push_back(rz_pred);
+
+    R_ty_vec.push_back(translation_noise);
+    R_ty_vec.push_back(rotation_noise);
+    R_ty_vec.push_back(rotation_noise);
+    R_ty_vec.push_back(rotation_noise);
+
+    /*filter_measurements_struct.R_ty.at<double>(0,0) = translation_noise*translation_noise;
+    filter_measurements_struct.R_ty.at<double>(1,1) = rotation_noise*rotation_noise;
+    filter_measurements_struct.R_ty.at<double>(2,2) = rotation_noise*rotation_noise;
+    filter_measurements_struct.R_ty.at<double>(3,3) = rotation_noise*rotation_noise;//*/
+
+
+    filter_measurements_struct.Z_tz.push_back(ty_pred);
+    filter_measurements_struct.Z_tz.push_back(rx_pred);
+    filter_measurements_struct.Z_tz.push_back(ry_pred);
+    filter_measurements_struct.Z_tz.push_back(rz_pred);
+
+    R_tz_vec.push_back(translation_noise);
+    R_tz_vec.push_back(rotation_noise);
+    R_tz_vec.push_back(rotation_noise);
+    R_tz_vec.push_back(rotation_noise);
+
+    /*filter_measurements_struct.R_tz.at<double>(0,0) = translation_noise*translation_noise;
+    filter_measurements_struct.R_tz.at<double>(1,1) = rotation_noise*rotation_noise;
+    filter_measurements_struct.R_tz.at<double>(2,2) = rotation_noise*rotation_noise;
+    filter_measurements_struct.R_tz.at<double>(3,3) = rotation_noise*rotation_noise;//*/
+
+
+    filter_measurements_struct.Z_rx.push_back(ty_pred);
+    filter_measurements_struct.Z_rx.push_back(tz_pred);
+    filter_measurements_struct.Z_rx.push_back(ry_pred);
+    filter_measurements_struct.Z_rx.push_back(rz_pred);
+
+    R_rx_vec.push_back(translation_noise);
+    R_rx_vec.push_back(translation_noise);
+    R_rx_vec.push_back(rotation_noise);
+    R_rx_vec.push_back(rotation_noise);
+
+    /*filter_measurements_struct.R_rx.at<double>(0,0) = translation_noise*translation_noise;
+    filter_measurements_struct.R_rx.at<double>(1,1) = translation_noise*translation_noise;
+    filter_measurements_struct.R_rx.at<double>(2,2) = rotation_noise*rotation_noise;
+    filter_measurements_struct.R_rx.at<double>(3,3) = rotation_noise*rotation_noise;//*/
+
+
+    filter_measurements_struct.Z_ry.push_back(ty_pred);
+    filter_measurements_struct.Z_ry.push_back(tz_pred);
+    filter_measurements_struct.Z_ry.push_back(rx_pred);
+    filter_measurements_struct.Z_ry.push_back(rz_pred);
+
+    R_ry_vec.push_back(translation_noise);
+    R_ry_vec.push_back(translation_noise);
+    R_ry_vec.push_back(rotation_noise);
+    R_ry_vec.push_back(rotation_noise);
+
+    /*filter_measurements_struct.R_ry.at<double>(0,0) = translation_noise*translation_noise;
+    filter_measurements_struct.R_ry.at<double>(1,1) = translation_noise*translation_noise;
+    filter_measurements_struct.R_ry.at<double>(2,2) = rotation_noise*rotation_noise;
+    filter_measurements_struct.R_ry.at<double>(3,3) = rotation_noise*rotation_noise;//*/
+
+
+    filter_measurements_struct.Z_rz.push_back(ty_pred);
+    filter_measurements_struct.Z_rz.push_back(tz_pred);
+    filter_measurements_struct.Z_rz.push_back(rx_pred);
+    filter_measurements_struct.Z_rz.push_back(ry_pred);
+
+    R_rz_vec.push_back(translation_noise);
+    R_rz_vec.push_back(translation_noise);
+    R_rz_vec.push_back(rotation_noise);
+    R_rz_vec.push_back(rotation_noise);
+
+    /*filter_measurements_struct.R_rz.at<double>(0,0) = translation_noise*translation_noise;
+    filter_measurements_struct.R_rz.at<double>(1,1) = translation_noise*translation_noise;
+    filter_measurements_struct.R_rz.at<double>(2,2) = rotation_noise*rotation_noise;
+    filter_measurements_struct.R_rz.at<double>(3,3) = rotation_noise*rotation_noise;//*/
+
+
+    Mat ir = Mat::zeros(sscp_general.left_cam_resy, 3*sscp_general.left_cam_resx, CV_8UC3);
+    //for the weighting features
+    //double lambda = 10; //20;
+
+    double threshold = 0.8; //0.8;
+
+    for(int j=0; j<number_of_features; j++){
+
+        double weight_rx = PointWeight_rx(features_right[j].Point, Kright);
+        double weight_ry = PointWeight_ry(features_right[j].Point, Kright);
+        double weight_rz = PointWeight_rz(features_right[j].Point, Kright);
+
+        /*double features_noise_rx = (lambda*(1-weight_rx)+1)*features_noise;
+        double features_noise_ry = (lambda*(1-weight_ry)+1)*features_noise;
+        double features_noise_rz = (lambda*(1-weight_rz)+1)*features_noise;//*/
+
+        if(weight_rx > threshold)
+        //if(weight_rz > threshold)
+        {
+            ir.at<Vec3b>(features_right[j].Point.y, features_right[j].Point.x)[1] = 255;
+        }
+
+        if(weight_ry > threshold)
+        //if(weight_rz > threshold)
+        {
+            ir.at<Vec3b>(features_right[j].Point.y, sscp_general.left_cam_resx + features_right[j].Point.x)[1] = 255;
+        }
+
+        if(weight_rz > threshold)
+        {
+            ir.at<Vec3b>(features_right[j].Point.y, 2*sscp_general.left_cam_resx + features_right[j].Point.x)[1] = 255;
+        }
+
+        filter_measurements_struct.Z_ty.push_back(double(features_left[j].Point.x));
+        filter_measurements_struct.Z_ty.push_back(double(features_left[j].Point.y));
+        filter_measurements_struct.Z_ty.push_back(double(features_right[j].Point.x));
+        filter_measurements_struct.Z_ty.push_back(double(features_right[j].Point.y));
+
+        R_ty_vec.push_back(features_noise);
+        R_ty_vec.push_back(features_noise);
+        R_ty_vec.push_back(features_noise);
+        R_ty_vec.push_back(features_noise);
+
+        /*filter_measurements_struct.R_ty.at<double>(4 + 2*j,4 + 2*j) = features_noise*features_noise;
+        filter_measurements_struct.R_ty.at<double>(4 + 2*j + 1,4 + 2*j + 1) = features_noise*features_noise;
+        filter_measurements_struct.R_ty.at<double>(4 + 2*number_of_features + 2*j, 4 + 2*number_of_features + 2*j) = features_noise*features_noise;
+        filter_measurements_struct.R_ty.at<double>(4 + 2*number_of_features + 2*j + 1, 4 + 2*number_of_features + 2*j + 1) = features_noise*features_noise;//*/
+
+        filter_measurements_struct.Z_tz.push_back(double(features_left[j].Point.x));
+        filter_measurements_struct.Z_tz.push_back(double(features_left[j].Point.y));
+        filter_measurements_struct.Z_tz.push_back(double(features_right[j].Point.x));
+        filter_measurements_struct.Z_tz.push_back(double(features_right[j].Point.y));
+
+        R_tz_vec.push_back(features_noise);
+        R_tz_vec.push_back(features_noise);
+        R_tz_vec.push_back(features_noise);
+        R_tz_vec.push_back(features_noise);
+
+        /*filter_measurements_struct.R_tz.at<double>(4 + 2*j,4 + 2*j) = features_noise*features_noise;
+        filter_measurements_struct.R_tz.at<double>(4 + 2*j + 1,4 + 2*j + 1) = features_noise*features_noise;
+        filter_measurements_struct.R_tz.at<double>(4 + 2*number_of_features + 2*j, 4 + 2*number_of_features + 2*j) = features_noise*features_noise;
+        filter_measurements_struct.R_tz.at<double>(4 + 2*number_of_features + 2*j + 1, 4 + 2*number_of_features + 2*j + 1) = features_noise*features_noise;//*/
+
+        if(weight_rx > threshold)
+        //if(weight_rz > threshold)
+        {
+
+            filter_measurements_struct.Z_rx.push_back(double(features_left[j].Point.x));
+            filter_measurements_struct.Z_rx.push_back(double(features_left[j].Point.y));
+            filter_measurements_struct.Z_rx.push_back(double(features_right[j].Point.x));
+            filter_measurements_struct.Z_rx.push_back(double(features_right[j].Point.y));
+
+            R_rx_vec.push_back(features_noise);
+            R_rx_vec.push_back(features_noise);
+            R_rx_vec.push_back(features_noise);
+            R_rx_vec.push_back(features_noise);
+
+            /*filter_measurements_struct.R_rx.at<double>(4 + 2*j,4 + 2*j) = features_noise_rx*features_noise_rx;
+            filter_measurements_struct.R_rx.at<double>(4 + 2*j + 1,4 + 2*j + 1) = features_noise_rx*features_noise_rx;
+            filter_measurements_struct.R_rx.at<double>(4 + 2*number_of_features + 2*j, 4 + 2*number_of_features + 2*j) = features_noise_rx*features_noise_rx;
+            filter_measurements_struct.R_rx.at<double>(4 + 2*number_of_features + 2*j + 1, 4 + 2*number_of_features + 2*j + 1) = features_noise_rx*features_noise_rx;//*/
+        }
+
+        if(weight_ry > threshold)
+        //if(weight_rz > threshold)
+        {
+
+            filter_measurements_struct.Z_ry.push_back(double(features_left[j].Point.x));
+            filter_measurements_struct.Z_ry.push_back(double(features_left[j].Point.y));
+            filter_measurements_struct.Z_ry.push_back(double(features_right[j].Point.x));
+            filter_measurements_struct.Z_ry.push_back(double(features_right[j].Point.y));
+
+            R_ry_vec.push_back(features_noise);
+            R_ry_vec.push_back(features_noise);
+            R_ry_vec.push_back(features_noise);
+            R_ry_vec.push_back(features_noise);
+
+            /*filter_measurements_struct.R_ry.at<double>(4 + 2*j,4 + 2*j) = features_noise_ry*features_noise_ry;
+            filter_measurements_struct.R_ry.at<double>(4 + 2*j + 1,4 + 2*j + 1) = features_noise_ry*features_noise_ry;
+            filter_measurements_struct.R_ry.at<double>(4 + 2*number_of_features + 2*j, 4 + 2*number_of_features + 2*j) = features_noise_ry*features_noise_ry;
+            filter_measurements_struct.R_ry.at<double>(4 + 2*number_of_features + 2*j + 1, 4 + 2*number_of_features + 2*j + 1) = features_noise_ry*features_noise_ry;//*/
+        }
+
+        if(weight_rz > threshold)
+        {
+
+            filter_measurements_struct.Z_rz.push_back(double(features_left[j].Point.x));
+            filter_measurements_struct.Z_rz.push_back(double(features_left[j].Point.y));
+            filter_measurements_struct.Z_rz.push_back(double(features_right[j].Point.x));
+            filter_measurements_struct.Z_rz.push_back(double(features_right[j].Point.y));
+
+            R_rz_vec.push_back(features_noise);
+            R_rz_vec.push_back(features_noise);
+            R_rz_vec.push_back(features_noise);
+            R_rz_vec.push_back(features_noise);
+
+            /*filter_measurements_struct.R_rz.at<double>(4 + 2*j,4 + 2*j) = features_noise_rz*features_noise_rz;
+            filter_measurements_struct.R_rz.at<double>(4 + 2*j + 1,4 + 2*j + 1) = features_noise_rz*features_noise_rz;
+            filter_measurements_struct.R_rz.at<double>(4 + 2*number_of_features + 2*j, 4 + 2*number_of_features + 2*j) = features_noise_rz*features_noise_rz;
+            filter_measurements_struct.R_rz.at<double>(4 + 2*number_of_features + 2*j + 1, 4 + 2*number_of_features + 2*j + 1) = features_noise_rz*features_noise_rz;//*/
+        }
+    }
+
+    filter_measurements_struct.R_ty = Mat::eye(R_ty_vec.rows,R_ty_vec.rows,CV_64F);
+    for(int j=0; j<R_ty_vec.rows; j++)
+        filter_measurements_struct.R_ty.at<double>(j,j) = R_ty_vec.at<double>(j,0)*R_ty_vec.at<double>(j,0);
+
+    filter_measurements_struct.R_tz = Mat::eye(R_tz_vec.rows,R_tz_vec.rows,CV_64F);
+    for(int j=0; j<R_tz_vec.rows; j++)
+        filter_measurements_struct.R_tz.at<double>(j,j) = R_tz_vec.at<double>(j,0)*R_tz_vec.at<double>(j,0);
+
+    filter_measurements_struct.R_rx = Mat::eye(R_rx_vec.rows,R_rx_vec.rows,CV_64F);
+    for(int j=0; j<R_rx_vec.rows; j++)
+        filter_measurements_struct.R_rx.at<double>(j,j) = R_rx_vec.at<double>(j,0)*R_rx_vec.at<double>(j,0);
+
+    filter_measurements_struct.R_ry = Mat::eye(R_ry_vec.rows,R_ry_vec.rows,CV_64F);
+    for(int j=0; j<R_ry_vec.rows; j++)
+        filter_measurements_struct.R_ry.at<double>(j,j) = R_ry_vec.at<double>(j,0)*R_ry_vec.at<double>(j,0);
+
+    filter_measurements_struct.R_rz = Mat::eye(R_rz_vec.rows,R_rz_vec.rows,CV_64F);
+    for(int j=0; j<R_rz_vec.rows; j++)
+        filter_measurements_struct.R_rz.at<double>(j,j) = R_rz_vec.at<double>(j,0)*R_rz_vec.at<double>(j,0);
+
+    //cout << endl;
+
+    imshow("ir", ir);
+
+    return filter_measurements_struct;
 }

@@ -14,8 +14,8 @@ double PointWeight_rx(cv::Point point, cv::Mat K)
     double mean1 = cy - fy;
     double mean2 = cy + fy;
 
-    double std1 = fy/4.; //fy/4.;
-    double std2 = fy/4.; //fy/4.;
+    double std1 = fy/2.; //fy/4.;
+    double std2 = fy/2.; //fy/4.;
 
     double a1 = -(v-mean1)*(v-mean1)/((2*std1)*(2*std1));
     double a2 = -(v-mean2)*(v-mean2)/((2*std2)*(2*std2));
@@ -37,8 +37,8 @@ double PointWeight_ry(cv::Point point, cv::Mat K)
     double mean1 = cx - fx;
     double mean2 = cx + fx;
 
-    double std1 = fx/4.; //fx/4.;
-    double std2 = fx/4.; //fx/4.;
+    double std1 = fx/2.; //fx/4.;
+    double std2 = fx/2.; //fx/4.;
 
     double a1 = -(u-mean1)*(u-mean1)/((2*std1)*(2*std1));
     double a2 = -(u-mean2)*(u-mean2)/((2*std2)*(2*std2));
@@ -64,7 +64,7 @@ double PointWeight_rz(cv::Point point, cv::Mat K)
     double d = sqrt(xn*xn + yn*yn);
 
     double mean1 = 1;
-    double std1 = 0.1; //0.1;
+    double std1 = 0.65; //0.1;
     double a = -(d-mean1)*(d-mean1)/((2*std1)*(2*std1));
 
     double w = exp(a);

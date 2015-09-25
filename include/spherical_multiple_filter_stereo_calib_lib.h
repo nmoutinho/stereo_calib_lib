@@ -11,6 +11,7 @@
 #include "plot/Plot.h"
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include "filter/Jacobians.h"
+#include "tools/PointsWeight.h"
 
 struct spherical_multiple_filter_stereo_calib_params
 {
@@ -45,6 +46,23 @@ struct spherical_multiple_filter_stereo_disparity_data
     cv::Mat point_cloud_rgb;
 };
 
+struct filterMeasurementsStruct
+{
+    cv::Mat Z_ty;
+    cv::Mat Z_tz;
+    cv::Mat Z_rx;
+    cv::Mat Z_ry;
+    cv::Mat Z_rz;
+
+    cv::Mat R_ty;
+    cv::Mat R_tz;
+    cv::Mat R_rx;
+    cv::Mat R_ry;
+    cv::Mat R_rz;
+
+    cv::Mat dG_dZ;
+};
+
 class spherical_multiple_filter_stereo_calib {
 
     public:
@@ -58,6 +76,8 @@ class spherical_multiple_filter_stereo_calib {
         double rotation_state_noise;
         double translation_transition_noise;
         double rotation_transition_noise;
+        double translation_measurements_noise;
+        double rotation_measurements_noise;
         double features_measurements_noise;
         double matching_threshold;
         double max_number_of_features;
@@ -65,10 +85,11 @@ class spherical_multiple_filter_stereo_calib {
         double number_measurements;
 
         //filter state and covariance matrix
-        cv::Mat X, P;
+        cv::Mat X_ty, X_tz, X_rx, X_ry, X_rz;
+        cv::Mat P_ty, P_tz, P_rx, P_ry, P_rz;
 
         //the calibration system
-        calibrationSphericalMultipleFilterStereoCameras csc;
+        calibrationSphericalMultipleFilterStereoCameras csc_ty, csc_tz, csc_rx, csc_ry, csc_rz;
 
         cv::Mat Kleft, Kright;
 
@@ -89,6 +110,11 @@ class spherical_multiple_filter_stereo_calib {
 
 		spherical_multiple_filter_stereo_calib_data get_calibrated_transformations();
         spherical_multiple_filter_stereo_disparity_data get_disparity_map(cv::Mat left_image, cv::Mat right_image);
+
+        //functions
+        filterMeasurementsStruct defineFiltersMeasurementsVector(double ty_pred, double tz_pred, double rx_pred, double ry_pred, double rz_pred,
+                                                                 std::vector<Feature> features_left, std::vector<Feature> features_right, int number_of_features, double translation_noise,
+                                                                 double rotation_noise, double features_noise);
 
 };
 
