@@ -4,10 +4,10 @@ using namespace cv;
 
 //w=0 se o ponto for bom / w=1 se o ponto for mau
 //ponto é bom se |z| for igual a |y|
-double PointWeight_rx(cv::Point point, cv::Mat K)
+double PointWeight_rx(cv::Point point, cv::Mat K, int image_height)
 {
 
-    double height = 240;
+    double height = double(image_height);
 
     double v = point.y;
 
@@ -29,9 +29,9 @@ double PointWeight_rx(cv::Point point, cv::Mat K)
 
 //w=0 se o ponto for bom / w=1 se o ponto for mau
 //ponto é bom se |z| for igual a |x|
-double PointWeight_ry(cv::Point point, cv::Mat K)
+double PointWeight_ry(cv::Point point, cv::Mat K, int image_width)
 {
-    double width = 320;
+    double width = double(image_width);
 
     double u = point.x;
 

@@ -13,10 +13,10 @@ spherical_multiple_filter_stereo_calib::spherical_multiple_filter_stereo_calib(s
 
     translation_state_noise = 0.33;
     rotation_state_noise = 0.5;
-    translation_transition_noise = 0.1;
-    rotation_transition_noise = 0.05;
-    translation_measurements_noise = 0.5; //5;
-    rotation_measurements_noise = 0.1; //5;
+    translation_transition_noise = 0.075; //0.1;
+    rotation_transition_noise = 0.02; //0.05;
+    translation_measurements_noise = 0.5; //0.5;
+    rotation_measurements_noise = 0.1; //0.1;
     features_measurements_noise = 10/(resize_factor*resize_factor); //5;
     matching_threshold = 0.3;
     max_number_of_features = 200; //200;
@@ -417,22 +417,22 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
 
     double threshold_all = 0.0;
     double threshold_good = 0.7; //0.8;
-    double threshold_bad = 0.65; //0.775;
+    double threshold_bad = 0.6; //0.775;
 
-    double threshold = threshold_all; //0.8;
+    double threshold = threshold_good; //0.8;
 
     for(int j=0; j<number_of_features; j++){
 
-        double weight_rx = PointWeight_rx(features_right[j].Point, Kright);
-        double weight_ry = PointWeight_ry(features_right[j].Point, Kright);
+        double weight_rx = PointWeight_rx(features_right[j].Point, Kright, sscp_general.left_cam_resy);
+        double weight_ry = PointWeight_ry(features_right[j].Point, Kright, sscp_general.left_cam_resx);
         double weight_rz = 1.-PointWeight_rz(features_right[j].Point, Kright);
 
-        if(weight_rx > threshold)
+        if(weight_rx < threshold)
         {
             ir.at<Vec3b>(features_right[j].Point.y, features_right[j].Point.x)[1] = 255;
         }
 
-        if(weight_ry > threshold)
+        if(weight_ry < threshold)
         {
             ir.at<Vec3b>(features_right[j].Point.y, sscp_general.left_cam_resx + features_right[j].Point.x)[1] = 255;
         }
@@ -462,7 +462,7 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
         R_tz_vec.push_back(features_noise);
         R_tz_vec.push_back(features_noise);
 
-        if(weight_rx > threshold)
+        if(weight_rx < threshold)
         {
 
             filter_measurements_struct.Z_rx.push_back(double(features_left[j].Point.x));
@@ -476,7 +476,7 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
             R_rx_vec.push_back(features_noise);
         }
 
-        if(weight_ry > threshold)
+        if(weight_ry < threshold)
         {
 
             filter_measurements_struct.Z_ry.push_back(double(features_left[j].Point.x));
