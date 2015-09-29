@@ -416,7 +416,7 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
     Mat ir = Mat::zeros(sscp_general.left_cam_resy, 3*sscp_general.left_cam_resx, CV_8UC3);
 
     double threshold_all = 0.0;
-    double threshold_good = 0.5; //0.8;
+    double threshold_good = 0.6; //0.8;
     double threshold_bad = 0.6; //0.775;
 
     double threshold = threshold_good; //0.8;
@@ -427,12 +427,12 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
         double weight_ry = PointWeight_ry(features_right[j].Point, Kright, sscp_general.left_cam_resx);
         double weight_rz = 1.-PointWeight_rz(features_right[j].Point, Kright);
 
-        if(weight_rx > threshold)
+        if(weight_rx < threshold)
         {
             ir.at<Vec3b>(features_right[j].Point.y, features_right[j].Point.x)[1] = 255;
         }
 
-        if(weight_ry > threshold)
+        if(weight_ry < threshold)
         {
             ir.at<Vec3b>(features_right[j].Point.y, sscp_general.left_cam_resx + features_right[j].Point.x)[1] = 255;
         }
@@ -462,7 +462,7 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
         R_tz_vec.push_back(features_noise);
         R_tz_vec.push_back(features_noise);
 
-        if(weight_rx > threshold)
+        if(weight_rx < threshold)
         {
 
             filter_measurements_struct.Z_rx.push_back(double(features_left[j].Point.x));
@@ -476,7 +476,7 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
             R_rx_vec.push_back(features_noise);
         }
 
-        if(weight_ry > threshold)
+        if(weight_ry < threshold)
         {
 
             filter_measurements_struct.Z_ry.push_back(double(features_left[j].Point.x));
