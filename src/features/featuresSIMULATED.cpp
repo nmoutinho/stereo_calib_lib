@@ -2,6 +2,7 @@
 #include <vector>
 #include "features/featuresSIMULATED.h"
 #include <iostream>
+#include <time.h>
 
 #pragma warning (disable : 4244) //disable conversion double to float
 
@@ -14,12 +15,14 @@ featuresSIMULATED::featuresSIMULATED(void){}
 void featuresSIMULATED::Apply(std::vector<Feature> &Features1, std::vector<Feature> &Features2,
 cv::Mat kleft, cv::Mat kright, int image_w, int image_h, cv::Mat T_1to2, int numberFeatures)
 {
-    int min_distance = 250;
+    int min_distance = 500; //750;
     int error = 10000;
-    int max_distance = 750;
-    srand (time(NULL));
+    int max_distance = 500;
+    //srand(time(NULL));
 
     Mat images = Mat::zeros(image_h, image_w, CV_8UC3);
+    Mat left = Mat::zeros(image_h, image_w, CV_64F);
+    Mat right = Mat::zeros(image_h, image_w, CV_64F);
 
     for(int n=0; n<numberFeatures; n++)
     {
@@ -70,10 +73,10 @@ cv::Mat kleft, cv::Mat kright, int image_w, int image_h, cv::Mat T_1to2, int num
         }
         else
         {
-            int max_x_y = 2*max_distance;
+            int max_x_y = 2*(min_distance+max_distance);
             x = (rand() % max_x_y)-double(max_x_y)/2;
             y = (rand() % max_x_y)-double(max_x_y)/2;
-            z = max_distance; //(rand() % max_distance)+min_distance;
+            z = (rand() % max_distance)+min_distance; //min_distance;
         }
 
         left_point.at<double>(0,0) = x;
@@ -105,11 +108,20 @@ cv::Mat kleft, cv::Mat kright, int image_w, int image_h, cv::Mat T_1to2, int num
         feat_right.Point.x > 0 && feat_right.Point.x < image_w &&
         feat_right.Point.y > 0 && feat_right.Point.y < image_h)
         {
-            Features1.push_back(feat_left);
-            Features2.push_back(feat_right);
+            double lval = left.at<double>(feat_left.Point.y, feat_left.Point.x);
+            double rval = right.at<double>(feat_right.Point.y, feat_right.Point.x);
 
-            circle(images, feat_left.Point, 2, Scalar(0,255,0));
-            circle(images, feat_right.Point, 2, Scalar(0,0,255));
+            if(lval == 0 && rval == 0)
+            {
+                left.at<double>(feat_left.Point.y, feat_left.Point.x) = 1;
+                right.at<double>(feat_right.Point.y, feat_right.Point.x) = 1;
+
+                Features1.push_back(feat_left);
+                Features2.push_back(feat_right);
+
+                circle(images, feat_left.Point, 2, Scalar(0,255,0));
+                circle(images, feat_right.Point, 2, Scalar(0,0,255));
+            }
 
         }
 

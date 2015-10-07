@@ -7,6 +7,6 @@
 
 double PointWeight_rx(cv::Point point, cv::Mat K, int image_height);
 double PointWeight_ry(cv::Point point, cv::Mat K, int image_width);
-double PointWeight_rz(cv::Point point, cv::Mat K);
+double PointWeight_rz(cv::Point point, cv::Mat K, int image_width, int image_height);
 
 #endif

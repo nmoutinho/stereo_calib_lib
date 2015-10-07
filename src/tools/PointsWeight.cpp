@@ -53,21 +53,19 @@ double PointWeight_ry(cv::Point point, cv::Mat K, int image_width)
 
 //w=0 se o ponto for bom / w=1 se o ponto for mau
 //ponto é bom se |z| for igual a |d|, onde d = sqrt(x*x + y*y)
-double PointWeight_rz(cv::Point point, cv::Mat K)
+double PointWeight_rz(cv::Point point, cv::Mat K, int image_width, int image_height)
 {
-    Mat im = Mat::ones(3,1,CV_64F);
-    im.at<double>(0,0) = point.x;
-    im.at<double>(1,0) = point.y;
 
-    Mat norm_pt = K.inv()*im;
+    double width = double(image_width);
+    double height = double(image_height);
 
-    double xn = norm_pt.at<double>(0,0);
-    double yn = norm_pt.at<double>(1,0);
+    double u = point.x;
+    double v = point.y;
 
-    double d = sqrt(xn*xn + yn*yn);
+    double d = sqrt((u-width/2)*(u-width/2) + (v-height/2)*(v-height/2));
 
-    double mean1 = 1;
-    double std1 = 0.1; //0.65;
+    double mean1 = width/2;
+    double std1 = width/5;
     double a = -(d-mean1)*(d-mean1)/((2*std1)*(2*std1));
 
     double w = exp(a);

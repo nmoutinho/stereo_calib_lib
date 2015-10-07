@@ -13,8 +13,8 @@ spherical_multiple_filter_stereo_calib::spherical_multiple_filter_stereo_calib(s
 
     translation_state_noise = 0.33;
     rotation_state_noise = 0.5;
-    translation_transition_noise = 0.075; //0.1;
-    rotation_transition_noise = 0.02; //0.05;
+    translation_transition_noise = 0.05; //0.05;
+    rotation_transition_noise = 0.01; //0.01;
     translation_measurements_noise = 0.5; //0.5;
     rotation_measurements_noise = 0.1; //0.1;
     features_measurements_noise = 10/(resize_factor*resize_factor); //5;
@@ -121,7 +121,6 @@ void spherical_multiple_filter_stereo_calib::calibrate(const cv::Mat image_left,
 
 void spherical_multiple_filter_stereo_calib::calibrate(std::vector<Feature> features_left, std::vector<Feature> features_right)
 {
-
     int number_of_features = features_left.size();
     if(number_of_features >= min_number_of_features)
     {
@@ -175,7 +174,7 @@ void spherical_multiple_filter_stereo_calib::calibrate(std::vector<Feature> feat
         csc_ry.NumPoints = (filter_measurements_struct.Z_ry.rows-4)/4;
         csc_rz.NumPoints = (filter_measurements_struct.Z_rz.rows-4)/4;
 
-        //cout << csc_ty.NumPoints << " " << csc_tz.NumPoints << " " << csc_rx.NumPoints << " " << csc_ry.NumPoints << " " << csc_rz.NumPoints << endl;
+        //cout << double(csc_rx.NumPoints)/double(csc_ty.NumPoints)*100 << "% - " << double(csc_ry.NumPoints)/double(csc_ty.NumPoints)*100 << "% - " << double(csc_rz.NumPoints)/double(csc_ty.NumPoints)*100 << "%" << endl;
 
         if(csc_ty.NumPoints < min_number_of_features)
         {
@@ -415,31 +414,50 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
 
     Mat ir = Mat::zeros(sscp_general.left_cam_resy, 3*sscp_general.left_cam_resx, CV_8UC3);
 
-    double threshold_all = 0.0;
-    double threshold_good = 0.6; //0.8;
-    double threshold_bad = 0.6; //0.775;
+    bool use_good_points = true;
 
-    double threshold = threshold_good; //0.8;
+    double threshold_all = 0.0;
+    double threshold_good = 0.8; //0.8;
+    double threshold_bad = 0.6; //0.6;
+
+    //double threshold = threshold_bad; //0.8;
 
     for(int j=0; j<number_of_features; j++){
 
         double weight_rx = PointWeight_rx(features_right[j].Point, Kright, sscp_general.left_cam_resy);
         double weight_ry = PointWeight_ry(features_right[j].Point, Kright, sscp_general.left_cam_resx);
-        double weight_rz = 1.-PointWeight_rz(features_right[j].Point, Kright);
+        double weight_rz = PointWeight_rz(features_right[j].Point, Kright, sscp_general.left_cam_resx, sscp_general.left_cam_resy);//*/
 
-        if(weight_rx < threshold)
+        bool rx_condition;
+        bool ry_condition;
+        bool rz_condition;
+
+        if(use_good_points)
         {
-            ir.at<Vec3b>(features_right[j].Point.y, features_right[j].Point.x)[1] = 255;
+            rx_condition = (weight_rx > threshold_good);
+            ry_condition = (weight_ry > threshold_good);
+            rz_condition = (weight_rz > threshold_good);
+        }
+        else
+        {
+            rx_condition = (weight_rx < threshold_bad);
+            ry_condition = (weight_ry < threshold_bad);
+            rz_condition = (weight_rz < threshold_bad);
         }
 
-        if(weight_ry < threshold)
+        if(rx_condition)
+        {
+            ir.at<Vec3b>(features_right[j].Point.y, features_right[j].Point.x)[0] = 255;
+        }
+
+        if(ry_condition)
         {
             ir.at<Vec3b>(features_right[j].Point.y, sscp_general.left_cam_resx + features_right[j].Point.x)[1] = 255;
         }
 
-        if(weight_rz > threshold)
+        if(rz_condition)
         {
-            ir.at<Vec3b>(features_right[j].Point.y, 2*sscp_general.left_cam_resx + features_right[j].Point.x)[1] = 255;
+            ir.at<Vec3b>(features_right[j].Point.y, 2*sscp_general.left_cam_resx + features_right[j].Point.x)[2] = 255;
         }//*/
 
         filter_measurements_struct.Z_ty.push_back(double(features_left[j].Point.x));
@@ -462,9 +480,8 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
         R_tz_vec.push_back(features_noise);
         R_tz_vec.push_back(features_noise);
 
-        if(weight_rx < threshold)
+        if(rx_condition)
         {
-
             filter_measurements_struct.Z_rx.push_back(double(features_left[j].Point.x));
             filter_measurements_struct.Z_rx.push_back(double(features_left[j].Point.y));
             filter_measurements_struct.Z_rx.push_back(double(features_right[j].Point.x));
@@ -476,9 +493,8 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
             R_rx_vec.push_back(features_noise);
         }
 
-        if(weight_ry < threshold)
+        if(ry_condition)
         {
-
             filter_measurements_struct.Z_ry.push_back(double(features_left[j].Point.x));
             filter_measurements_struct.Z_ry.push_back(double(features_left[j].Point.y));
             filter_measurements_struct.Z_ry.push_back(double(features_right[j].Point.x));
@@ -491,7 +507,7 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
 
         }
 
-        if(weight_rz > threshold)
+        if(rz_condition)
         {
 
             filter_measurements_struct.Z_rz.push_back(double(features_left[j].Point.x));
@@ -505,6 +521,10 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
             R_rz_vec.push_back(features_noise);
         }
     }
+
+    /*cout << "% features rx = " << double(filter_measurements_struct.Z_rx.rows/4)/double(number_of_features)*100 << endl;
+    cout << "% features ry = " << double(filter_measurements_struct.Z_ry.rows/4)/double(number_of_features)*100 << endl;
+    cout << "% features rz = " << double(filter_measurements_struct.Z_rz.rows/4)/double(number_of_features)*100 << endl << endl;//*/
 
     filter_measurements_struct.R_ty = Mat::eye(R_ty_vec.rows,R_ty_vec.rows,CV_64F);
     for(int j=0; j<R_ty_vec.rows; j++)
