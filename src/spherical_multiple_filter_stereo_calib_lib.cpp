@@ -414,6 +414,7 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
 
     Mat ir = Mat::zeros(sscp_general.left_cam_resy, 3*sscp_general.left_cam_resx, CV_8UC3);
 
+    bool show_points = false;
     bool use_good_points = true;
 
     double threshold_all = 0.0;
@@ -445,19 +446,22 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
             rz_condition = (weight_rz < threshold_bad);
         }
 
-        if(rx_condition)
+        if(show_points)
         {
-            ir.at<Vec3b>(features_right[j].Point.y, features_right[j].Point.x)[0] = 255;
-        }
+            if(rx_condition)
+            {
+                ir.at<Vec3b>(features_right[j].Point.y, features_right[j].Point.x)[0] = 255;
+            }
 
-        if(ry_condition)
-        {
-            ir.at<Vec3b>(features_right[j].Point.y, sscp_general.left_cam_resx + features_right[j].Point.x)[1] = 255;
-        }
+            if(ry_condition)
+            {
+                ir.at<Vec3b>(features_right[j].Point.y, sscp_general.left_cam_resx + features_right[j].Point.x)[1] = 255;
+            }
 
-        if(rz_condition)
-        {
-            ir.at<Vec3b>(features_right[j].Point.y, 2*sscp_general.left_cam_resx + features_right[j].Point.x)[2] = 255;
+            if(rz_condition)
+            {
+                ir.at<Vec3b>(features_right[j].Point.y, 2*sscp_general.left_cam_resx + features_right[j].Point.x)[2] = 255;
+            }
         }//*/
 
         filter_measurements_struct.Z_ty.push_back(double(features_left[j].Point.x));
@@ -548,8 +552,11 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
 
     //cout << endl;
 
-    imshow("ir", ir);
-    waitKey(10);
+    if(show_points)
+    {
+        imshow("ir", ir);
+        waitKey(10);
+    }
 
     return filter_measurements_struct;
 }
