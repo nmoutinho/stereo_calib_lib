@@ -12,6 +12,7 @@
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include "filter/Jacobians.h"
 #include "tools/PointsWeight.h"
+#include "tools/ToString.h"
 
 struct spherical_multiple_filter_stereo_calib_params
 {
@@ -100,6 +101,24 @@ class spherical_multiple_filter_stereo_calib {
         std::vector<double> plot_data_5;
         std::vector<double> plot_data_6;
 
+        cv::Mat previous_left_img;
+        cv::Mat previous_right_img;
+        bool first_images;
+        double min_image_diff;
+        bool use_measurements;
+        bool filters_converged;
+
+        bool use_good_points;
+        bool use_close_points;
+
+        bool use_good_points_ty;
+        bool use_good_points_tz;
+        bool use_good_points_rx;
+        bool use_good_points_ry;
+        bool use_good_points_rz;
+
+        double resize_factor;
+
 	public:
 
 		spherical_multiple_filter_stereo_calib(spherical_multiple_filter_stereo_calib_params sscp_general_);
@@ -115,6 +134,10 @@ class spherical_multiple_filter_stereo_calib {
         filterMeasurementsStruct defineFiltersMeasurementsVector(double ty_pred, double tz_pred, double rx_pred, double ry_pred, double rz_pred,
                                                                  std::vector<Feature> features_left, std::vector<Feature> features_right, int number_of_features, double translation_noise,
                                                                  double rotation_noise, double features_noise);
+
+        filterMeasurementsStruct defineFiltersMeasurementsVector(double ty_pred, double tz_pred, double rx_pred, double ry_pred, double rz_pred,
+                                                                 std::vector<Feature> features_left, std::vector<Feature> features_right, int number_of_features, double ty_uncertainty, double tz_uncertainty,
+                                                                 double rx_uncertainty, double ry_uncertainty, double rz_uncertainty, double features_noise);
 
 };
 

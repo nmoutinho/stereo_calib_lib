@@ -6,6 +6,13 @@
 
 using namespace cv;
 
+calibrationSphericalMultipleFilterStereoCameras::calibrationSphericalMultipleFilterStereoCameras(void)
+{
+    convergence_threshold = 0.01;
+    norm_inn_sq_win = 5;
+}
+
+
 /// Transition State Function F for a Simulated Stereo System
 Mat calibrationSphericalMultipleFilterStereoCameras::F(Mat X_k, Mat U_k) const {
 

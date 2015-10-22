@@ -67,3 +67,4 @@ void featuresSIFT::Apply(const cv::Mat &Img1, const cv::Mat &Img2, std::vector<F
         waitKey(10);//*/
     }
 }//*/
+

@@ -32,7 +32,11 @@ void EKF::Filter_Update(Mat Z_explicit, Mat Z_implicit){
 	}
 
 	//Update
-	Implicit_Explicit_Update(X_pred.clone(), P_pred.clone(), Z_explicit.clone(), Z_explicit_pred.clone(), Inn_implicit.clone(), Pn.clone(), Q.clone(), R_explicit.clone(), R_implicit.clone(), Cache_dF_dX.clone(), Cache_dH_dX.clone(), Cache_dG_dX.clone(), Cache_dF_dU.clone(),
-		X_k, P_k);
+	/*Implicit_Explicit_Update(X_pred.clone(), P_pred.clone(), Z_explicit.clone(), Z_explicit_pred.clone(), Inn_implicit.clone(), Pn.clone(), Q.clone(), R_explicit.clone(), R_implicit.clone(), Cache_dF_dX.clone(), Cache_dH_dX.clone(), Cache_dG_dX.clone(), Cache_dF_dU.clone(),
+		X_k, P_k);//*/
+
+    Implicit_Explicit_Update(X_pred.clone(), P_pred.clone(), Z_explicit.clone(), Z_explicit_pred.clone(), Inn_implicit.clone(), Pn.clone(), Q.clone(), R_explicit.clone(), R_implicit.clone(), Cache_dF_dX.clone(), Cache_dH_dX.clone(), Cache_dG_dX.clone(), Cache_dF_dU.clone(),
+		X_k, P_k, norm_inn_sq, filter_converged, norm_inn_sq_win, convergence_threshold);
+
 
 }

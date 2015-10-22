@@ -39,7 +39,7 @@ class calibrationSphericalMultipleFilterStereoCameras: public EKF {
 	public:
 
 		///Constructor
-		calibrationSphericalMultipleFilterStereoCameras(void){};
+		calibrationSphericalMultipleFilterStereoCameras(void);
 
 		/// Transition State Function F for a Simulated Stereo System
 		cv::Mat F(cv::Mat X_k, cv::Mat U_k) const;
