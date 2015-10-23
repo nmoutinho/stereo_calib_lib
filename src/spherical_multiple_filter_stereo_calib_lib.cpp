@@ -225,47 +225,65 @@ void spherical_multiple_filter_stereo_calib::calibrate(std::vector<Feature> feat
     double w_ty = 1-1/(pow(2,n_ty));
 
     Mat using_good_points_ty = calib_state(Range(0,w),Range(w,2*w));
-    using_good_points_ty = Scalar(0,125*(1-w_ty),125*w_ty);
-    putText(calib_state, "Ty: "+doubleToString((1-w_ty)*100)+"%", Point(w+25,w/2), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
+    if(csc_ty.filter_converged)
+        using_good_points_ty = Scalar(0,125,0);
+    //using_good_points_ty = Scalar(0,125*(1-w_ty),125*w_ty);
+    putText(calib_state, "Ty: "+doubleToString(round((1-w_ty)*100))+"%", Point(1.25*w,w/2), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
+    //putText(calib_state, "Ty", Point(1.5*w,w/2), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
 
     //for tz
     double n_tz = tz_var/(var*translation_transition_noise);
     double w_tz = 1-1/(pow(2,n_tz));
 
     Mat using_good_points_tz = calib_state(Range(0,w),Range(2*w,3*w));
-    using_good_points_tz = Scalar(0,125*(1-w_tz),125*w_tz);
-    putText(calib_state, "Tz: "+doubleToString((1-w_tz)*100)+"%", Point(2*w+25,w/2), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
+    if(csc_tz.filter_converged)
+        using_good_points_tz = Scalar(0,125,0);
+    //using_good_points_tz = Scalar(0,125*(1-w_tz),125*w_tz);
+    putText(calib_state, "Tz: "+doubleToString(round((1-w_tz)*100))+"%", Point(2.25*w+25,w/2), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
+    //putText(calib_state, "Tz", Point(2.5*w,w/2), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
 
     //for tx
     double w_tx = min(w_ty, w_tz);
 
     Mat using_good_points_tx = calib_state(Range(0,w),Range(0,w));
-    using_good_points_tx = Scalar(0,125*(1-w_tx),125*w_tx);
-    putText(calib_state, "Tx: "+doubleToString((1-w_tx)*100)+"%", Point(0+25,w/2), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
+    if(csc_ty.filter_converged && csc_tz.filter_converged)
+        using_good_points_tx = Scalar(0,125,0);
+    //using_good_points_tx = Scalar(0,125*(1-w_tx),125*w_tx);
+    putText(calib_state, "Tx: "+doubleToString(round((1-w_tx)*100))+"%", Point(0.25*w,w/2), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
+    //putText(calib_state, "Tx", Point(w/2,w/2), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
 
     //for rx
     double n_rx = rx_var/(var*rotation_transition_noise);
     double w_rx = 1-1/(pow(2,n_rx));
 
     Mat using_good_points_rx = calib_state(Range(w,2*w),Range(0,w));
-    using_good_points_rx = Scalar(0,125*(1-w_rx),125*w_rx);
-    putText(calib_state, "Rx: "+doubleToString((1-w_rx)*100)+"%", Point(0+25,1.5*w), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
+    if(csc_rx.filter_converged)
+        using_good_points_rx = Scalar(0,125,0);
+    //using_good_points_rx = Scalar(0,125*(1-w_rx),125*w_rx);
+    putText(calib_state, "Rx: "+doubleToString(round((1-w_rx)*100))+"%", Point(0.25*w,1.5*w), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
+    //putText(calib_state, "Rx", Point(w/2,1.5*w), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
 
      //for ry
     double n_ry = ry_var/(var*rotation_transition_noise);
     double w_ry = 1-1/(pow(2,n_ry));
 
     Mat using_good_points_ry = calib_state(Range(w,2*w),Range(w,2*w));
-    using_good_points_ry = Scalar(0,125*(1-w_ry),125*w_ry);
-    putText(calib_state, "Ry: "+doubleToString((1-w_ry)*100)+"%", Point(w+25,1.5*w), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
+    if(csc_ry.filter_converged)
+        using_good_points_ry = Scalar(0,125,0);
+    //uusing_good_points_ry = Scalar(0,125*(1-w_ry),125*w_ry);
+    putText(calib_state, "Ry: "+doubleToString(round((1-w_ry)*100))+"%", Point(1.25*w,1.5*w), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
+    //putText(calib_state, "Ry", Point(1.5*w,1.5*w), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
 
     //for rz
     double n_rz = rz_var/(var*rotation_transition_noise);
     double w_rz = 1-1/(pow(2,n_rz));
 
     Mat using_good_points_rz = calib_state(Range(w,2*w),Range(2*w,3*w));
-    using_good_points_rz = Scalar(0,125*(1-w_rz),125*w_rz);
-    putText(calib_state, "Rz: "+doubleToString((1-w_rz)*100)+"%", Point(2*w+25,1.5*w), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
+    if(csc_rz.filter_converged)
+        using_good_points_rz = Scalar(0,125,0);
+    //uusing_good_points_rz = Scalar(0,125*(1-w_rz),125*w_rz);
+    putText(calib_state, "Rz: "+doubleToString(round((1-w_rz)*100))+"%", Point(2.25*w,1.5*w), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
+    //putText(calib_state, "Rz", Point(2.5*w,1.5*w), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
 
     imshow("calib_state", calib_state);
 
