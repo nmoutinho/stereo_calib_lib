@@ -372,6 +372,8 @@ spherical_multiple_filter_stereo_calib_data spherical_multiple_filter_stereo_cal
     double ry =  csc_ry.X_k.clone().at<double>(0,0);
     double rz = csc_rz.X_k.clone().at<double>(0,0);
 
+    EyesStereoModel(ty, tz, rx, ry, rz);
+
     Mat rot_LeftToRightKplus1 = Mat::zeros(3,1, CV_64F);
 	rot_LeftToRightKplus1.at<double>(0,0) = rx;
 	rot_LeftToRightKplus1.at<double>(1,0) = ry;

@@ -13,6 +13,7 @@
 #include "filter/Jacobians.h"
 #include "tools/PointsWeight.h"
 #include "tools/ToString.h"
+#include"tools/EyesStereoModel.h"
 
 struct spherical_multiple_filter_stereo_calib_params
 {
