@@ -13,8 +13,8 @@ spherical_multiple_filter_stereo_calib::spherical_multiple_filter_stereo_calib(s
 
     translation_state_noise = 0.33;
     rotation_state_noise = 0.5;
-    translation_transition_noise = 0.075; //0.05;
-    rotation_transition_noise = 0.015; //0.01;
+    translation_transition_noise = 0.05; //0.05;
+    rotation_transition_noise = 0.01; //0.01;
     translation_measurements_noise = 0.5; //0.5;
     rotation_measurements_noise = 0.1; //0.1;
     features_measurements_noise = 5/(resize_factor*resize_factor); //5;
@@ -85,7 +85,8 @@ spherical_multiple_filter_stereo_calib::spherical_multiple_filter_stereo_calib(s
     csc_ry.Pn = Mat::zeros(1,1,CV_64F);
     csc_rz.Pn = Mat::zeros(1,1,CV_64F);
 
-    csc_ty.Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*translation_transition_noise*translation_transition_noise;
+    double translation_transition_noise_ty = translation_transition_noise;
+    csc_ty.Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*translation_transition_noise_ty*translation_transition_noise_ty;
     csc_tz.Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*translation_transition_noise*translation_transition_noise;
     csc_rx.Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*rotation_transition_noise*rotation_transition_noise;
     csc_ry.Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*rotation_transition_noise*rotation_transition_noise;
@@ -215,7 +216,7 @@ void spherical_multiple_filter_stereo_calib::calibrate(std::vector<Feature> feat
         filters_converged = (csc_ty.filter_converged && csc_tz.filter_converged && csc_rx.filter_converged && csc_ry.filter_converged && csc_ry.filter_converged);
     }
 
-    int w = 150;
+    /*int w = 150;
     double var = 2.5;
     Mat calib_state = Mat::ones(2*w, 3*w, CV_8UC3);
     calib_state = Scalar(0,0,125);
@@ -285,7 +286,7 @@ void spherical_multiple_filter_stereo_calib::calibrate(std::vector<Feature> feat
     putText(calib_state, "Rz: "+doubleToString(round((1-w_rz)*100))+"%", Point(2.25*w,1.5*w), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
     //putText(calib_state, "Rz", Point(2.5*w,1.5*w), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
 
-    imshow("calib_state", calib_state);
+    imshow("calib_state", calib_state);//*/
 
 
     if(csc_ty.Flag_Cameras_Measurements)
@@ -366,27 +367,25 @@ spherical_multiple_filter_stereo_calib_data spherical_multiple_filter_stereo_cal
 {
     spherical_multiple_filter_stereo_calib_data scd;
 
-    double ty =  csc_ty.X_k.clone().at<double>(0,0);
-    double tz =  csc_tz.X_k.clone().at<double>(0,0);
-    double rx = csc_rx.X_k.clone().at<double>(0,0);
-    double ry =  csc_ry.X_k.clone().at<double>(0,0);
-    double rz = csc_rz.X_k.clone().at<double>(0,0);
-
-    EyesStereoModel(ty, tz, rx, ry, rz);
+    scd.ty =  csc_ty.X_k.clone().at<double>(0,0);
+    scd.tz =  csc_tz.X_k.clone().at<double>(0,0);
+    scd.rx = csc_rx.X_k.clone().at<double>(0,0);
+    scd.ry =  csc_ry.X_k.clone().at<double>(0,0);
+    scd.rz = csc_rz.X_k.clone().at<double>(0,0);
 
     Mat rot_LeftToRightKplus1 = Mat::zeros(3,1, CV_64F);
-	rot_LeftToRightKplus1.at<double>(0,0) = rx;
-	rot_LeftToRightKplus1.at<double>(1,0) = ry;
-	rot_LeftToRightKplus1.at<double>(2,0) = rz;
+	rot_LeftToRightKplus1.at<double>(0,0) = scd.rx;
+	rot_LeftToRightKplus1.at<double>(1,0) = scd.ry;
+	rot_LeftToRightKplus1.at<double>(2,0) = scd.rz;
 
 	Mat R_LeftToRightKplus1;
 	Rodrigues(rot_LeftToRightKplus1, R_LeftToRightKplus1);
 
 	Mat t_LeftToRightKplus1 = Mat::zeros(3,1,CV_64F);
 
-	t_LeftToRightKplus1.at<double>(0,0) = -sqrt(1 - ty*ty - tz*tz)*baseline;
-	t_LeftToRightKplus1.at<double>(1,0) = ty*baseline;
-	t_LeftToRightKplus1.at<double>(2,0) = tz*baseline;
+	t_LeftToRightKplus1.at<double>(0,0) = -sqrt(1 - scd.ty*scd.ty - scd.tz*scd.tz)*baseline;
+	t_LeftToRightKplus1.at<double>(1,0) = scd.ty*baseline;
+	t_LeftToRightKplus1.at<double>(2,0) = scd.tz*baseline;
 
 	//t_LeftToRightKplus1 = t_LeftToRightKplus1.clone()/norm(t_LeftToRightKplus1.clone())*baseline;
 

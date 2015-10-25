@@ -38,6 +38,7 @@ struct spherical_multiple_filter_stereo_calib_data
     cv::Mat R_left_cam_to_right_cam;
     cv::Mat rot_left_cam_to_right_cam;
     cv::Mat t_left_cam_to_right_cam;
+    double ty, tz, rx, ry, rz;
 };
 
 struct spherical_multiple_filter_stereo_disparity_data
