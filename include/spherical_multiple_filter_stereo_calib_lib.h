@@ -8,7 +8,6 @@
 #include "filter/Kinematics.h"
 #include "filter/VisualOdometry_Base.h"
 #include "features/featuresSIFT.h"
-#include "plot/Plot.h"
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include "filter/Jacobians.h"
 #include "tools/PointsWeight.h"
