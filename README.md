@@ -1,9 +1,9 @@
 # stereo_calib_lib
 Stereo calibration library for C++ (implemented by Nuno Moutinho)
 
-The stereo_calib_lib calibrates any stereo vision system in an online manner, with or without encoder measurements. The system assumes every stereo system has 6 measurements: Rx(left), Ry(left), Rz(left), Rx(right), Ry(right) and Rz(right).
+The stereo_calib_lib calibrates any stereo vision system in an online manner. The system assumes the baseline is fixed between the two cameras and estimates the 6 parameters that compose the transformation between the left and right cameras: Tx, Ty, Tz, Rx, Ry and Rz. 
 
-This system should be left running during operation and provides the calibrated transformation between the two cameras at any time instance. 
+This system receives image pairs (from left and right cameras) and can be left running during operation, providing a calibrated transformation between the two cameras at any time instance, in an online manner. The system adapts to sudden changes in the cameras' configuration and can be used with active vision (version and vergence).
 
 ## Requirements
 
@@ -86,24 +86,11 @@ You now need to link the stereo_calib_lib respository to your project. You can d
 
 This way you can compile and link the stereo_calib_lib to your project.
 
-## Setting the encoder measurements
-
-The system is prepared to receive to a maximum of 6 measurements from the cameras encoders. In case your system has measurements, you should include them in the follwing order:
-
- - Encoder(0): left camera Ry
- - Encoder(1): right camera Ry
- - Encoder(2): left camera Rx
- - Encoder(3): right camera Rx
- - Encoder(4): left camera Rz
- - Encoder(5): right camera Rz
-
-For all the measurements you don't have measures, leave its values as zero.
-
 ## Setting the stereo_calib_lib parameters
 
-To initialize the stereo_calib_lib you have to set the parameters (complete_stereo_calib_params) for the two cameras (intrinsic parameters) and define the baseline between the left and right cameras:
+The system receives only left and right images as input. To initialize the stereo_calib_lib you have to set the parameters (spherical_multiple_filter_stereo_calib_params) for the two cameras (intrinsic parameters) and define the baseline between the left and right cameras:
 
- - complete_stereo_calib_params
+ - spherical_multiple_filter_stereo_calib_params
 
 	- baseline: in mm
 	- left_cam_resx: width of your left image
@@ -121,7 +108,7 @@ To initialize the stereo_calib_lib you have to set the parameters (complete_ster
 
 ## Single image rectification
 
-If for some reason you need to rectify your images and remove the radial distortion before applying them to the stereo_calib_lib, you can use the imagesBase class, as shown in the follwing example.
+If for some reason you need to rectify your images and remove the radial distortion before applying them to the spherical_multiple_filter_stereo_calib, you can use the imagesBase class, as shown in the follwing example.
 
 ## Example
 
@@ -129,7 +116,7 @@ This example uses OpenCv:
 
 	#include <opencv/cv.h>
 	#include <opencv/highgui.h>
-	#include "complete_stereo_calib_lib.h"
+	#include "spherical_multiple_filter_stereo_calib_lib.h"
 	#include "images/imagesBase.h"	
 
 	int main(int argc, char * argv[])
@@ -179,7 +166,7 @@ This example uses OpenCv:
 	    double resize_factor = 2.;
 	
 	    //set the parameters for the stereo calibration system
-	    complete_stereo_calib_params cscp_general;
+	    spherical_multiple_filter_stereo_calib_params cscp_general;
 	    cscp_general.baseline = 67;//in mm
 	    cscp_general.left_cam_resx = width/resize_factor;
 	    cscp_general.left_cam_resy = height/resize_factor;
@@ -194,10 +181,7 @@ This example uses OpenCv:
 	    cscp_general.right_cam_fx = kright.at<double>(0,0)/resize_factor;
 	    cscp_general.right_cam_fy = kright.at<double>(1,1)/resize_factor;
 
-	    complete_stereo_calib csc(cscp_general);
-
-	    //since this stereo rig has no encoders we pass zeros as measurements to the stereo calibration system
-	    Mat stereo_encoders = Mat::zeros(6,1,CV_64F);
+	    spherical_multiple_filter_stereo_calib csc(cscp_general);
 
 	    while(1)
 	    {
@@ -211,13 +195,13 @@ This example uses OpenCv:
 		resize(ibd.rectifiedLeftImage, left_rz, Size(left.cols/resize_factor,left.rows/resize_factor));
 		resize(ibd.rectifiedRightImage, right_rz, Size(right.cols/resize_factor,right.rows/resize_factor));
 
-		csc.calibrate(left_rz, right_rz, stereo_encoders);
+		csc.calibrate(left_rz, right_rz);
 
 		//get the calibrated transformations between the two cameras
-		complete_stereo_calib_data cscd =  csc.get_calibrated_transformations(stereo_encoders);
+		spherical_multiple_filter_stereo_calib_data cscd =  csc.get_calibrated_transformations();
 
 		//obtain and show the disparity map
-		complete_stereo_disparity_data csdd = csc.complete_stereo_calib::get_disparity_map(left_rz, right_rz, stereo_encoders);
+		spherical_multiple_filter_stereo_disparity_data csdd = csc.complete_stereo_calib::get_disparity_map(left_rz, right_rz);
         	imshow("disparity", csdd.disparity_image);
 		waitKey(1)
 
