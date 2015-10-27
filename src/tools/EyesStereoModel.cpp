@@ -155,13 +155,7 @@ cv::Mat EyesStereoModel(double ty, double tz, double rx, double ry, double rz)
     putText(l_img, "rz: "+doubleToString(offset_z_l*180/CV_PI)+"deg", Point(0.25*w,0.3*h), FONT_HERSHEY_TRIPLEX, .4, Scalar(255,255,255));
     putText(l_img, "Left Camera", Point(0.25*w,0.85*h), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
 
-    imshow("img", img);
-
-    /*cout << "tt_x_r = " << offset_x_r*180/CV_PI << endl;
-    cout << "tt_y_l = " << offset_y_l*180/CV_PI << endl;
-    cout << "tt_y_r = " << offset_y_r*180/CV_PI << endl;
-    cout << "tt_z_l = " << offset_z_l*180/CV_PI << endl;
-    cout << "tt_z_r = " << offset_z_r*180/CV_PI << endl << endl << endl;//*/
+    //imshow("img", img);
 
     return l_img;
 }
