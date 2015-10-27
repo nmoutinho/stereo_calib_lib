@@ -157,7 +157,7 @@ cv::Mat EyesStereoModel(double ty, double tz, double rx, double ry, double rz)
 
     //imshow("img", img);
 
-    return l_img;
+    return img;
 }
 
 void drawArrow(Mat image, Point p, Point q, Scalar color, int arrowMagnitude, int thickness, int line_type, int shift)
