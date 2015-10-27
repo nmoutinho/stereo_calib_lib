@@ -147,6 +147,8 @@ This example uses OpenCv:
 	    iip.right_p1  = 0.00008;
 	    iip.right_p2  = 0.0;
 
+	    imagesBase ib(iip);
+
 	    //capture the first images from your cameras
 	    VideoCapture cap1, cap2;
 	    cap1.open(0);
@@ -164,7 +166,7 @@ This example uses OpenCv:
 	    int height = iip.left_resy;
 
 	    double resize_factor = 2.;
-	
+
 	    //set the parameters for the stereo calibration system
 	    spherical_multiple_filter_stereo_calib_params cscp_general;
 	    cscp_general.baseline = 67;//in mm
@@ -201,13 +203,13 @@ This example uses OpenCv:
 		spherical_multiple_filter_stereo_calib_data cscd =  csc.get_calibrated_transformations();
 
 		//obtain and show the disparity map
-		spherical_multiple_filter_stereo_disparity_data csdd = csc.complete_stereo_calib::get_disparity_map(left_rz, right_rz);
+		spherical_multiple_filter_stereo_disparity_data csdd = csc.get_disparity_map(left_rz, right_rz);
         	imshow("disparity", csdd.disparity_image);
-		waitKey(1)
+		waitKey(1);
 
 		//show the transformation between the left and right images
 		cout << "Transformation from left to right camera: " << cscd.transformation_left_cam_to_right_cam << endl;
-		
+
 	    }
 
 	    return 0;
