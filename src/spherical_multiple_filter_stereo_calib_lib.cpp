@@ -18,7 +18,7 @@ spherical_multiple_filter_stereo_calib::spherical_multiple_filter_stereo_calib(s
     translation_measurements_noise = 0.5; //0.5;
     rotation_measurements_noise = 0.1; //0.1;
     features_measurements_noise = 5/(resize_factor*resize_factor); //5;
-    matching_threshold = 0.25; //0.3;
+    matching_threshold = 0.2; //0.3;
     max_number_of_features = 100; //200;
     min_number_of_features = 1;
 
