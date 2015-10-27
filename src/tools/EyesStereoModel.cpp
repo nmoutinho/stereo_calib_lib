@@ -40,20 +40,25 @@ cv::Mat EyesStereoModel(double ty, double tz, double rx, double ry, double rz)
     Rodrigues(rot_l, R_l);
     Rodrigues(rot_r, R_r);
 
-    double axis_sz = 25;
+    double axis_sz = 40;
     Mat axis = Mat::zeros(4,6,CV_64F);
-    axis.at<double>(0,0) = -axis_sz/3;
+    axis.at<double>(0,0) = -axis_sz;
     axis.at<double>(0,1) = axis_sz;
     axis.at<double>(3,0) = 1;
     axis.at<double>(3,1) = 1;
-    axis.at<double>(1,2) = axis_sz/3;
+    axis.at<double>(1,2) = axis_sz;
     axis.at<double>(1,3) = -axis_sz;
     axis.at<double>(3,2) = 1;
     axis.at<double>(3,3) = 1;
-    axis.at<double>(2,4) = -axis_sz/3;
+    axis.at<double>(2,4) = -axis_sz;
     axis.at<double>(2,5) = axis_sz;
     axis.at<double>(3,4) = 1;
     axis.at<double>(3,5) = 1;
+
+    double optical_axis_sz = 20;
+    Mat optical_axis = Mat::zeros(4,1,CV_64F);
+    optical_axis.at<double>(2,0) = optical_axis_sz;
+    optical_axis.at<double>(3,0) = 1;
 
     Mat T_l = Mat::eye(4,4,CV_64F);
     Mat T_r = Mat::eye(4,4,CV_64F);
@@ -77,8 +82,11 @@ cv::Mat EyesStereoModel(double ty, double tz, double rx, double ry, double rz)
     Mat axis_l_rot = T_l*axis.clone();
     Mat axis_r_rot = T_r*axis.clone();
 
-    Point x_axis_l_start, x_axis_l_end, y_axis_l_start, y_axis_l_end, z_axis_l_start, z_axis_l_end;
-    Point x_axis_r_start, x_axis_r_end, y_axis_r_start, y_axis_r_end, z_axis_r_start, z_axis_r_end;
+    Mat optical_axis_l = T_l*optical_axis.clone();
+    Mat optical_axis_r = T_r*optical_axis.clone();
+
+    Point x_axis_l_start, x_axis_l_end, y_axis_l_start, y_axis_l_end, z_axis_l_start, z_axis_l_end, optical_axis_l_end;
+    Point x_axis_r_start, x_axis_r_end, y_axis_r_start, y_axis_r_end, z_axis_r_start, z_axis_r_end, optical_axis_r_end;
 
     x_axis_l_start.x = round(fx*(axis_l_rot.at<double>(0,0)/axis_l_rot.at<double>(2,0)) + cx);
     x_axis_l_start.y = round(fy*(axis_l_rot.at<double>(1,0)/axis_l_rot.at<double>(2,0)) + cy);
@@ -110,27 +118,41 @@ cv::Mat EyesStereoModel(double ty, double tz, double rx, double ry, double rz)
     z_axis_r_end.x = round(fx*axis_r_rot.at<double>(0,5)/axis_r_rot.at<double>(2,5) + cx);
     z_axis_r_end.y = round(fy*axis_r_rot.at<double>(1,5)/axis_r_rot.at<double>(2,5) + cy);
 
-    if(x_axis_l_start.x > 0 && x_axis_l_start.x < w && x_axis_l_end.x > 0 && x_axis_l_end.x < w && x_axis_l_start.y > 0 && x_axis_l_start.y < h && x_axis_l_end.y > 0 && x_axis_l_end.y < h &&
-       x_axis_r_start.x > 0 && x_axis_r_start.x < w && x_axis_r_end.x > 0 && x_axis_r_end.x < w && x_axis_r_start.y > 0 && x_axis_r_start.y < h && x_axis_r_end.y > 0 && x_axis_r_end.y < h)
-    {
-        //line(l_img, x_axis_l_start, x_axis_l_end, Scalar(255,0,0),2,8);
-        drawArrow(l_img, x_axis_l_start, x_axis_l_end, Scalar(255,0,0));
-        drawArrow(l_img, y_axis_l_start, y_axis_l_end, Scalar(0,255,0));
-        drawArrow(l_img, z_axis_l_start, z_axis_l_end, Scalar(0,0,255));
+    optical_axis_l_end.x = round(fx*optical_axis_l.at<double>(0,0)/optical_axis_l.at<double>(2,0) + cx);
+    optical_axis_l_end.y = round(fy*optical_axis_l.at<double>(1,0)/optical_axis_l.at<double>(2,0) + cy);
 
-        drawArrow(r_img, x_axis_r_start, x_axis_r_end, Scalar(255,0,0));
-        drawArrow(r_img, y_axis_r_start, y_axis_r_end, Scalar(0,255,0));
-        drawArrow(r_img, z_axis_r_start, z_axis_r_end, Scalar(0,0,255));
+    optical_axis_r_end.x = round(fx*optical_axis_r.at<double>(0,0)/optical_axis_r.at<double>(2,0) + cx);
+    optical_axis_r_end.y = round(fy*optical_axis_r.at<double>(1,0)/optical_axis_r.at<double>(2,0) + cy);
+
+    //if(x_axis_l_start.x > 0 && x_axis_l_start.x < w && x_axis_l_end.x > 0 && x_axis_l_end.x < w && x_axis_l_start.y > 0 && x_axis_l_start.y < h && x_axis_l_end.y > 0 && x_axis_l_end.y < h &&
+    //   x_axis_r_start.x > 0 && x_axis_r_start.x < w && x_axis_r_end.x > 0 && x_axis_r_end.x < w && x_axis_r_start.y > 0 && x_axis_r_start.y < h && x_axis_r_end.y > 0 && x_axis_r_end.y < h)
+
+    {
+        //draw cameras
+        circle(r_img, Point(w/2,h/2), 50, Scalar(255,255,255), -1);
+        circle(r_img, optical_axis_r_end, 20, Scalar(0,0,0), -1);
+
+        circle(l_img, Point(w/2,h/2), 50, Scalar(255,255,255), -1);
+        circle(l_img, optical_axis_l_end, 20, Scalar(0,0,0), -1);
+
+        //drawArrow(l_img, x_axis_l_start, x_axis_l_end, Scalar(255,0,0));
+        line(l_img, x_axis_l_start, x_axis_l_end, Scalar(255,0,0),1,8);
+        line(l_img, y_axis_l_start, y_axis_l_end, Scalar(0,255,0),1,8);
+        line(l_img, z_axis_l_start, z_axis_l_end, Scalar(0,0,255),1,8);
+
+        line(r_img, x_axis_r_start, x_axis_r_end, Scalar(255,0,0),1,8);
+        line(r_img, y_axis_r_start, y_axis_r_end, Scalar(0,255,0),1,8);
+        line(r_img, z_axis_r_start, z_axis_r_end, Scalar(0,0,255),1,8);
     }
 
-    putText(r_img, "rx: "+doubleToString(offset_x_r*180/CV_PI)+"deg", Point(0.1*w,0.1*h), FONT_HERSHEY_TRIPLEX, .4, Scalar(255,255,255));
-    putText(r_img, "ry: "+doubleToString(offset_y_r*180/CV_PI)+"deg", Point(0.1*w,0.2*h), FONT_HERSHEY_TRIPLEX, .4, Scalar(255,255,255));
-    putText(r_img, "rz: "+doubleToString(offset_z_r*180/CV_PI)+"deg", Point(0.1*w,0.3*h), FONT_HERSHEY_TRIPLEX, .4, Scalar(255,255,255));
+    putText(r_img, "rx: "+doubleToString(offset_x_r*180/CV_PI)+"deg", Point(0.25*w,0.1*h), FONT_HERSHEY_TRIPLEX, .4, Scalar(255,255,255));
+    putText(r_img, "ry: "+doubleToString(offset_y_r*180/CV_PI)+"deg", Point(0.25*w,0.2*h), FONT_HERSHEY_TRIPLEX, .4, Scalar(255,255,255));
+    putText(r_img, "rz: "+doubleToString(offset_z_r*180/CV_PI)+"deg", Point(0.25*w,0.3*h), FONT_HERSHEY_TRIPLEX, .4, Scalar(255,255,255));
     putText(r_img, "Right Camera", Point(0.25*w,0.85*h), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
 
-    putText(l_img, "rx: "+doubleToString(0)+"deg", Point(0.1*w,0.1*h), FONT_HERSHEY_TRIPLEX, .4, Scalar(255,255,255));
-    putText(l_img, "ry: "+doubleToString(offset_y_l*180/CV_PI)+"deg", Point(0.1*w,0.2*h), FONT_HERSHEY_TRIPLEX, .4, Scalar(255,255,255));
-    putText(l_img, "rz: "+doubleToString(offset_z_l*180/CV_PI)+"deg", Point(0.1*w,0.3*h), FONT_HERSHEY_TRIPLEX, .4, Scalar(255,255,255));
+    putText(l_img, "rx: "+doubleToString(0)+"deg", Point(0.25*w,0.1*h), FONT_HERSHEY_TRIPLEX, .4, Scalar(255,255,255));
+    putText(l_img, "ry: "+doubleToString(offset_y_l*180/CV_PI)+"deg", Point(0.25*w,0.2*h), FONT_HERSHEY_TRIPLEX, .4, Scalar(255,255,255));
+    putText(l_img, "rz: "+doubleToString(offset_z_l*180/CV_PI)+"deg", Point(0.25*w,0.3*h), FONT_HERSHEY_TRIPLEX, .4, Scalar(255,255,255));
     putText(l_img, "Left Camera", Point(0.25*w,0.85*h), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
 
     imshow("img", img);

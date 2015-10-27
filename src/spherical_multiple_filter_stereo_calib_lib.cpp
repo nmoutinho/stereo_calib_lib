@@ -13,12 +13,12 @@ spherical_multiple_filter_stereo_calib::spherical_multiple_filter_stereo_calib(s
 
     translation_state_noise = 0.33;
     rotation_state_noise = 0.5;
-    translation_transition_noise = 0.05; //0.05;
-    rotation_transition_noise = 0.01; //0.01;
+    translation_transition_noise = 0.075; //0.075;
+    rotation_transition_noise = 0.015; //0.015;
     translation_measurements_noise = 0.5; //0.5;
     rotation_measurements_noise = 0.1; //0.1;
     features_measurements_noise = 5/(resize_factor*resize_factor); //5;
-    matching_threshold = 0.2; //0.3;
+    matching_threshold = 0.25; //0.3;
     max_number_of_features = 100; //200;
     min_number_of_features = 1;
 
@@ -85,12 +85,14 @@ spherical_multiple_filter_stereo_calib::spherical_multiple_filter_stereo_calib(s
     csc_ry.Pn = Mat::zeros(1,1,CV_64F);
     csc_rz.Pn = Mat::zeros(1,1,CV_64F);
 
-    double translation_transition_noise_ty = translation_transition_noise;
+    double translation_transition_noise_ty = translation_transition_noise/5;
+    double rotationtransition_noise_rx = rotation_transition_noise/1;
+    double rotationtransition_noise_rz = rotation_transition_noise/1;
     csc_ty.Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*translation_transition_noise_ty*translation_transition_noise_ty;
     csc_tz.Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*translation_transition_noise*translation_transition_noise;
-    csc_rx.Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*rotation_transition_noise*rotation_transition_noise;
+    csc_rx.Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*rotationtransition_noise_rx*rotationtransition_noise_rx;
     csc_ry.Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*rotation_transition_noise*rotation_transition_noise;
-    csc_rz.Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*rotation_transition_noise*rotation_transition_noise;
+    csc_rz.Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*rotationtransition_noise_rz*rotationtransition_noise_rz;
 
     //set the camera intrinsic parameters
     csc_ty.LeftCalibMat = Kleft;
@@ -213,7 +215,7 @@ void spherical_multiple_filter_stereo_calib::calibrate(std::vector<Feature> feat
 
     if(!filters_converged)
     {
-        filters_converged = (csc_ty.filter_converged && csc_tz.filter_converged && csc_rx.filter_converged && csc_ry.filter_converged && csc_ry.filter_converged);
+        filters_converged = (csc_ty.filter_converged && csc_tz.filter_converged && csc_rx.filter_converged && csc_ry.filter_converged && csc_rz.filter_converged);
     }
 
     /*int w = 150;
@@ -857,7 +859,7 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
     //bool use_good_points = true;
 
     double threshold_all = 0.0;
-    double threshold_good = 0.8; //0.8;
+    double threshold_good = 0.75; //0.8;
     double threshold_bad = 0.6; //0.6;
 
     for(int j=0; j<number_of_features; j++){

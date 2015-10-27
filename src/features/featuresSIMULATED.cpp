@@ -15,7 +15,7 @@ featuresSIMULATED::featuresSIMULATED(void){}
 void featuresSIMULATED::Apply(std::vector<Feature> &Features1, std::vector<Feature> &Features2,
 cv::Mat kleft, cv::Mat kright, int image_w, int image_h, cv::Mat T_1to2, int numberFeatures)
 {
-    int min_distance = 500; //750;
+    int min_distance = 250; //750;
     int error = 10000;
     int max_distance = 500;
     //srand(time(NULL));
@@ -99,7 +99,7 @@ cv::Mat kleft, cv::Mat kright, int image_w, int image_h, cv::Mat T_1to2, int num
         feat_left.Point.x = round(left_image_point.at<double>(0,0));
         feat_left.Point.y = round(left_image_point.at<double>(1,0));
 
-        int max_feature_size = 5;
+        int max_feature_size = 10;
         feat_right.Point.x = round(right_image_point.at<double>(0,0) + (rand() %max_feature_size)-double(max_feature_size)/2);
         feat_right.Point.y = round(right_image_point.at<double>(1,0) + (rand() %max_feature_size)-double(max_feature_size)/2);
 
