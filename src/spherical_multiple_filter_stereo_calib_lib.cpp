@@ -17,7 +17,7 @@ spherical_multiple_filter_stereo_calib::spherical_multiple_filter_stereo_calib(s
     rotation_transition_noise = 0.015; //0.015;
     translation_measurements_noise = 0.5; //0.5;
     rotation_measurements_noise = 0.1; //0.1;
-    features_measurements_noise = 5/(resize_factor*resize_factor); //5;
+    features_measurements_noise = 3/(resize_factor*resize_factor); //5;
     matching_threshold = 0.2; //0.3;
     max_number_of_features = 100; //200;
     min_number_of_features = 1;
@@ -86,8 +86,8 @@ spherical_multiple_filter_stereo_calib::spherical_multiple_filter_stereo_calib(s
     csc_rz.Pn = Mat::zeros(1,1,CV_64F);
 
     double translation_transition_noise_ty = translation_transition_noise/5;
-    double rotationtransition_noise_rx = rotation_transition_noise/1;
-    double rotationtransition_noise_rz = rotation_transition_noise/1;
+    double rotationtransition_noise_rx = rotation_transition_noise/2;
+    double rotationtransition_noise_rz = rotation_transition_noise/2;
     csc_ty.Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*translation_transition_noise_ty*translation_transition_noise_ty;
     csc_tz.Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*translation_transition_noise*translation_transition_noise;
     csc_rx.Q = Mat::eye(number_fixed_state_params,number_fixed_state_params,CV_64F)*rotationtransition_noise_rx*rotationtransition_noise_rx;
@@ -859,7 +859,7 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
     //bool use_good_points = true;
 
     double threshold_all = 0.0;
-    double threshold_good = 0.75; //0.8;
+    double threshold_good = 0.7; //0.8;
     double threshold_bad = 0.6; //0.6;
 
     for(int j=0; j<number_of_features; j++){
