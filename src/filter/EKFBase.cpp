@@ -279,7 +279,7 @@ void Innovation_Update(Mat X_pred, Mat P_pred, Mat Inn, Mat Pn, Mat Q, Mat R, Ma
 }
 
 void Innovation_Update(Mat X_pred, Mat P_pred, Mat Inn, Mat Pn, Mat Q, Mat R, Mat dF_dX, Mat dInn_dX, Mat dF_dU,
-			 Mat &X_kplus1, Mat &P_kplus1, std::vector<double> &norm_inn_sq, bool &filter_converged, int norm_inn_sq_win, double convergence_threshold){
+			 Mat &X_kplus1, Mat &P_kplus1, std::vector<double> &mean_inn_vec, bool &filter_converged, int mean_inn_samples, double convergence_threshold){
 
 	//Matriz covariancia do processo de inovacao
 	Mat S = (dInn_dX.clone() * P_pred.clone() * dInn_dX.clone().t()) + R.clone();
@@ -291,7 +291,31 @@ void Innovation_Update(Mat X_pred, Mat P_pred, Mat Inn, Mat Pn, Mat Q, Mat R, Ma
 	if(isnan(K.at<double>(0,0)))
 	{std::cout << "K has NaN values" << std::endl;exit(0);}
 
-	Mat norm_inn_sq_mat = Inn.t()*S.inv()*Inn;
+    //convergence analysis using the innovation vector
+    double mean_inn = sum(Inn)[0]/Inn.rows;
+	mean_inn = sqrt(mean_inn/2);
+	if(mean_inn_vec.size() < mean_inn_samples)
+	{
+	    mean_inn_vec.push_back(mean_inn);
+    }
+    else
+    {
+        mean_inn_vec.erase (mean_inn_vec.begin());
+        mean_inn_vec.push_back(mean_inn);
+        Mat all_mean_inn = Mat(mean_inn_vec);
+        double mean_mean_inn = mean(all_mean_inn)[0];
+        if(mean_mean_inn < convergence_threshold)
+        {
+            filter_converged = true;
+        }
+        else
+            filter_converged = false;
+    }
+
+
+	/*Mat norm_inn_sq_mat = Inn.t()*S.inv()*Inn;
+
+	//cout << "mean_inn: " << mean_inn << endl;
 	double norm_inn_sq_val = norm_inn_sq_mat.at<double>(0,0);
 	if(norm_inn_sq.size() < norm_inn_sq_win)
 	{
@@ -304,10 +328,13 @@ void Innovation_Update(Mat X_pred, Mat P_pred, Mat Inn, Mat Pn, Mat Q, Mat R, Ma
         Mat all_norm_inn_sq = Mat(norm_inn_sq);
         double norm_inn_sq_mean = mean(all_norm_inn_sq)[0];
         if(norm_inn_sq_mean < convergence_threshold)
+        {
             filter_converged = true;
+            cout << "converged: 2" << endl;
+        }
         else
             filter_converged = false;
-    }
+    }//*/
 
 	//Update
 

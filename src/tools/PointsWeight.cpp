@@ -56,14 +56,18 @@ double PointWeight_tz(cv::Point left_point, cv::Point right_point, cv::Mat Kleft
     double y = wp.y;
     double z = wp.z;
 
-    bool condition = (z<750);
+    bool condition = (z<1000);
 
     double w=0;
-    if(!isinf(x) && !isinf(y) && !isinf(z) && z>0 && !isnan(x) && !isnan(y) && !isnan(z) && condition)
+    if(!isinf(x) && !isinf(y) && !isinf(z) && z>0 && !isnan(x) && !isnan(y) && !isnan(z))
     {
-        w = 1.;
-        //std::cout << "Point tz: " << x << " " << y << " " << z << std::endl;
+        if(condition)
+            w = 1.;
+        else
+            w = 0;
     }
+    else
+        w=1;
 
     return w;
 }

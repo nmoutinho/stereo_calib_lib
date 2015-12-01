@@ -23,9 +23,9 @@ cv::Mat EyesStereoModel(double ty, double tz, double rx, double ry, double rz)
 
     double offset_x_r = -rx;
     double offset_y_l = -asin(tz);
-    double offset_y_r = -asin(tz)-ry;
+    double offset_y_r = -asin(tz)+ry;
     double offset_z_l = -asin(ty);
-    double offset_z_r = -asin(ty)-rz;
+    double offset_z_r = -asin(ty)+rz;
 
     Mat rot_l = Mat::zeros(3,1,CV_64F);
     rot_l.at<double>(1,0) = offset_y_l;

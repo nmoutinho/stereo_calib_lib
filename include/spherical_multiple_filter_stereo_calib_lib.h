@@ -120,6 +120,8 @@ class spherical_multiple_filter_stereo_calib {
 
         double resize_factor;
 
+        int total_number_of_features;
+
 	public:
 
 		spherical_multiple_filter_stereo_calib(spherical_multiple_filter_stereo_calib_params sscp_general_);
