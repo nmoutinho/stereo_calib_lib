@@ -246,7 +246,8 @@ void calibrationSphericalMultipleFilterStereoCameras::G_F(cv::Mat X, cv::Mat Z_T
         double epip_lkp12rkp1 = DistanceToEpipolar(ImLPtKplus1, ImRPtKplus1, F_Lkplus1_Rkplus1.clone()); //F_Lkplus1_Rkplus1
         double epip_rkp12lkp1 = DistanceToEpipolar(ImRPtKplus1, ImLPtKplus1, F_Lkplus1_Rkplus1.clone().t()); //F_Lkplus1_Rkplus1
 
-        Output.at<double>(i,0) = (epip_lkp12rkp1*epip_lkp12rkp1 + epip_rkp12lkp1*epip_rkp12lkp1);
+        Output.at<double>(i,0) = (epip_lkp12rkp1*epip_lkp12rkp1) + (epip_rkp12lkp1*epip_rkp12lkp1);
+
         //Output.at<double>(i,0) = (epip_lkp12rkp1*epip_lkp12rkp1);
     }
 }

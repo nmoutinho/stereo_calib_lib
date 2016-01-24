@@ -7,18 +7,18 @@ spherical_multiple_filter_stereo_calib::spherical_multiple_filter_stereo_calib(s
 {
     //the standard image is 320x240
     sscp_general = sscp_general_;
-    resize_factor = 320./sscp_general_.left_cam_resx;
+    resize_factor = 256./double(sscp_general_.left_cam_resx);
 
     baseline = sscp_general_.baseline;
 
     translation_state_noise = 0.33;
     rotation_state_noise = 0.5;
-    translation_transition_noise = 0.075; //0.075;
-    rotation_transition_noise = 0.015; //0.015;
+    translation_transition_noise = 0.035; //0.075;
+    rotation_transition_noise = 0.0075; //0.015;
     translation_measurements_noise = 0.5; //0.5;
     rotation_measurements_noise = 0.1; //0.1;
-    features_measurements_noise = 5/(resize_factor*resize_factor); //5;
-    matching_threshold = 0.2; //0.3;
+    features_measurements_noise = 5; // /(resize_factor); //10/(resize_factor*resize_factor);
+    matching_threshold = 0.35; //0.3;
     max_number_of_features = 200; //200;
     min_number_of_features = 1;
 
@@ -225,7 +225,7 @@ void spherical_multiple_filter_stereo_calib::calibrate(std::vector<Feature> feat
             use_close_points = false;
     }
 
-    int w = 150;
+    /*int w = 150;
     double var = 2.5;
     Mat calib_state = Mat::ones(2*w, 3*w, CV_8UC3);
     calib_state = Scalar(0,0,125);
@@ -311,6 +311,15 @@ void spherical_multiple_filter_stereo_calib::calibrate(std::vector<Feature> feat
         csc_rx.NumPoints = (filter_measurements_struct.Z_rx.rows-4)/4;
         csc_ry.NumPoints = (filter_measurements_struct.Z_ry.rows-4)/4;
         csc_rz.NumPoints = (filter_measurements_struct.Z_rz.rows-4)/4;
+
+
+        //TEMPORARY
+        ty_points = filter_measurements_struct.ty_points;
+        tz_points = filter_measurements_struct.tz_points;
+        rx_points = filter_measurements_struct.rx_points;
+        ry_points = filter_measurements_struct.ry_points;
+        rz_points = filter_measurements_struct.rz_points;
+        //TEMPORARY
 
         //cout << double(csc_ty.NumPoints)/double(number_of_features)*100 << "% - " << double(csc_tz.NumPoints)/double(number_of_features)*100  << "% - " << double(csc_rx.NumPoints)/double(number_of_features)*100 << "% - " << double(csc_ry.NumPoints)/double(number_of_features)*100 << "% - " << double(csc_rz.NumPoints)/double(number_of_features)*100 << "%" << endl;
 
@@ -458,11 +467,11 @@ spherical_multiple_filter_stereo_disparity_data spherical_multiple_filter_stereo
     SBM(rectified_left_image, rectified_right_image, Disparity);
     Disparity.convertTo(sdd.disparity_values, CV_64F, -1/16.);
 
-    //sdd.point_cloud_xyz = Mat::zeros(left_image.rows, left_image.cols, CV_64FC3);
+    sdd.point_cloud_xyz = Mat::zeros(left_image.rows, left_image.cols, CV_64FC3);
     sdd.disparity_values = Mat::zeros(Disparity.rows,Disparity.cols, CV_64F);
 
-	/*for (int r=0; r<Disparity.rows; r++){
-		for (int c=0; c<Disparity.cols; c++){
+	for (int r=0; r<Disparity.rows; r=r+25){
+		for (int c=0; c<Disparity.cols; c=c+25){
 
             sdd.disparity_values.at<double>(r,c) = -double(Disparity.at<short>(r,c))/16;
             //disparity_values.at<double>(r,c) = -double(Disparity.at<short>(r,c))/16;
@@ -481,8 +490,11 @@ spherical_multiple_filter_stereo_disparity_data spherical_multiple_filter_stereo
             sdd.point_cloud_xyz.at<Vec3d>(r,c)[1] = triPoint.at<double>(1,0);
             sdd.point_cloud_xyz.at<Vec3d>(r,c)[2] = triPoint.at<double>(2,0);
 
+            //cout << triPoint.at<double>(2,0) << " ";
 		}
 	}//*/
+
+	//cout << endl << endl;;
     sdd.point_cloud_rgb = rectified_left_image;
     Disparity.convertTo(sdd.disparity_image, CV_8U, 255/(SBM.numberOfDisparities*16.));
 
@@ -553,12 +565,13 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
 
     Mat ir = Mat::zeros(2*sscp_general.left_cam_resy, 3*sscp_general.left_cam_resx, CV_8UC3);
 
-    bool show_points = false;
+    bool show_points = true;
     //bool use_good_points = true;
 
     //double threshold_all = 0.0;
-    double threshold_good = 0.75; //0.8;
+    //double threshold_good = 0.7; //0.75;
     //double threshold_bad = 0.6; //0.6;
+    double threshold = 1.;
 
     for(int j=0; j<number_of_features; j++){
 
@@ -573,9 +586,12 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
             weight_tz = PointWeight_tz(features_left[j].Point, features_right[j].Point, Kleft, Kright, cmfscd.transformation_left_cam_to_right_cam);
         }
 
-        double weight_rx = PointWeight_rx(features_right[j].Point, Kright, sscp_general.left_cam_resy);
-        double weight_ry = PointWeight_ry(features_right[j].Point, Kright, sscp_general.left_cam_resx);
-        double weight_rz = PointWeight_rz(features_right[j].Point, Kright, sscp_general.left_cam_resx, sscp_general.left_cam_resy);
+        double weight_rx_left = PointWeight_rx(features_left[j].Point, Kleft, sscp_general.left_cam_resy);
+        double weight_ry_left = PointWeight_ry(features_left[j].Point, Kleft, sscp_general.left_cam_resx, sscp_general.left_cam_resy);
+        double weight_rz_left = PointWeight_rz(features_left[j].Point, Kleft, sscp_general.left_cam_resx, sscp_general.left_cam_resy);
+        double weight_rx_right = PointWeight_rx(features_right[j].Point, Kright, sscp_general.right_cam_resy);
+        double weight_ry_right = PointWeight_ry(features_right[j].Point, Kright, sscp_general.right_cam_resx, sscp_general.left_cam_resy);
+        double weight_rz_right = PointWeight_rz(features_right[j].Point, Kright, sscp_general.right_cam_resx, sscp_general.right_cam_resy);
 
         bool rx_condition;
         bool ry_condition;
@@ -585,9 +601,9 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
         {
             ty_condition = (weight_ty==1);
             tz_condition = (weight_tz==1);
-            rx_condition = (weight_rx > threshold_good);
-            ry_condition = (weight_ry > threshold_good);
-            rz_condition = (weight_rz > threshold_good);
+            rx_condition = ((weight_rx_left == threshold) || (weight_rx_right == threshold)); //(weight_rx_left > threshold_good) || (weight_rx_right > threshold_good);
+            ry_condition = ((weight_ry_left == threshold) || (weight_ry_right == threshold)); //(weight_ry_left > threshold_good) || (weight_ry_right > threshold_good);
+            rz_condition = ((weight_rz_left == threshold) || (weight_rz_right == threshold)); //(weight_rz_left > threshold_good) || (weight_rz_right > threshold_good);
         }
         else
         {
@@ -631,312 +647,19 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
             filter_measurements_struct.Z_ty.push_back(double(features_right[j].Point.x));
             filter_measurements_struct.Z_ty.push_back(double(features_right[j].Point.y));
 
-            R_ty_vec.push_back(features_noise);
-            R_ty_vec.push_back(features_noise);
-            R_ty_vec.push_back(features_noise);
-            R_ty_vec.push_back(features_noise);
-        }
 
-        if(tz_condition)
-        {
-            filter_measurements_struct.Z_tz.push_back(double(features_left[j].Point.x));
-            filter_measurements_struct.Z_tz.push_back(double(features_left[j].Point.y));
-            filter_measurements_struct.Z_tz.push_back(double(features_right[j].Point.x));
-            filter_measurements_struct.Z_tz.push_back(double(features_right[j].Point.y));
-
-            R_tz_vec.push_back(features_noise);
-            R_tz_vec.push_back(features_noise);
-            R_tz_vec.push_back(features_noise);
-            R_tz_vec.push_back(features_noise);
-        }
-
-        if(rx_condition)
-        {
-            filter_measurements_struct.Z_rx.push_back(double(features_left[j].Point.x));
-            filter_measurements_struct.Z_rx.push_back(double(features_left[j].Point.y));
-            filter_measurements_struct.Z_rx.push_back(double(features_right[j].Point.x));
-            filter_measurements_struct.Z_rx.push_back(double(features_right[j].Point.y));
-
-            R_rx_vec.push_back(features_noise);
-            R_rx_vec.push_back(features_noise);
-            R_rx_vec.push_back(features_noise);
-            R_rx_vec.push_back(features_noise);
-        }
-
-        if(ry_condition)
-        {
-            filter_measurements_struct.Z_ry.push_back(double(features_left[j].Point.x));
-            filter_measurements_struct.Z_ry.push_back(double(features_left[j].Point.y));
-            filter_measurements_struct.Z_ry.push_back(double(features_right[j].Point.x));
-            filter_measurements_struct.Z_ry.push_back(double(features_right[j].Point.y));
-
-            R_ry_vec.push_back(features_noise);
-            R_ry_vec.push_back(features_noise);
-            R_ry_vec.push_back(features_noise);
-            R_ry_vec.push_back(features_noise);
-
-        }
-
-        if(rz_condition)
-        {
-
-            filter_measurements_struct.Z_rz.push_back(double(features_left[j].Point.x));
-            filter_measurements_struct.Z_rz.push_back(double(features_left[j].Point.y));
-            filter_measurements_struct.Z_rz.push_back(double(features_right[j].Point.x));
-            filter_measurements_struct.Z_rz.push_back(double(features_right[j].Point.y));
-
-            R_rz_vec.push_back(features_noise);
-            R_rz_vec.push_back(features_noise);
-            R_rz_vec.push_back(features_noise);
-            R_rz_vec.push_back(features_noise);
-        }
-    }
-
-    filter_measurements_struct.R_ty = Mat::eye(R_ty_vec.rows,R_ty_vec.rows,CV_64F);
-    for(int j=0; j<R_ty_vec.rows; j++)
-        filter_measurements_struct.R_ty.at<double>(j,j) = R_ty_vec.at<double>(j,0)*R_ty_vec.at<double>(j,0);
-
-    filter_measurements_struct.R_tz = Mat::eye(R_tz_vec.rows,R_tz_vec.rows,CV_64F);
-    for(int j=0; j<R_tz_vec.rows; j++)
-        filter_measurements_struct.R_tz.at<double>(j,j) = R_tz_vec.at<double>(j,0)*R_tz_vec.at<double>(j,0);
-
-    filter_measurements_struct.R_rx = Mat::eye(R_rx_vec.rows,R_rx_vec.rows,CV_64F);
-    for(int j=0; j<R_rx_vec.rows; j++)
-        filter_measurements_struct.R_rx.at<double>(j,j) = R_rx_vec.at<double>(j,0)*R_rx_vec.at<double>(j,0);
-
-    filter_measurements_struct.R_ry = Mat::eye(R_ry_vec.rows,R_ry_vec.rows,CV_64F);
-    for(int j=0; j<R_ry_vec.rows; j++)
-        filter_measurements_struct.R_ry.at<double>(j,j) = R_ry_vec.at<double>(j,0)*R_ry_vec.at<double>(j,0);
-
-    filter_measurements_struct.R_rz = Mat::eye(R_rz_vec.rows,R_rz_vec.rows,CV_64F);
-    for(int j=0; j<R_rz_vec.rows; j++)
-        filter_measurements_struct.R_rz.at<double>(j,j) = R_rz_vec.at<double>(j,0)*R_rz_vec.at<double>(j,0);
-
-    //cout << endl;
-
-    if(show_points)
-    {
-        imshow("ir", ir);
-        waitKey(10);
-    }
-
-    return filter_measurements_struct;
-}//*/
-
-/*filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMeasurementsVector(double ty_pred, double tz_pred, double rx_pred, double ry_pred, double rz_pred,
-                                                                 std::vector<Feature> features_left, std::vector<Feature> features_right, int number_of_features, double ty_uncertainty, double tz_uncertainty,
-                                                                 double rx_uncertainty, double ry_uncertainty, double rz_uncertainty, double features_noise)
-{
-    filterMeasurementsStruct filter_measurements_struct;
-
-    double translation_noise = max(ty_uncertainty, tz_uncertainty);
-    double rotation_noise_tmp = max(rx_uncertainty, ry_uncertainty);
-    double rotation_noise = max(rotation_noise_tmp, rz_uncertainty);
-
-    Mat R_ty_vec, R_tz_vec, R_rx_vec, R_ry_vec, R_rz_vec;
-
-    spherical_multiple_filter_stereo_calib_data cmfscd = get_calibrated_transformations();
-
-    //for the translations and rotations
-    filter_measurements_struct.Z_ty.push_back(tz_pred);
-    filter_measurements_struct.Z_ty.push_back(rx_pred);
-    filter_measurements_struct.Z_ty.push_back(ry_pred);
-    filter_measurements_struct.Z_ty.push_back(rz_pred);
-
-    R_ty_vec.push_back(translation_noise);
-    R_ty_vec.push_back(rotation_noise);
-    R_ty_vec.push_back(rotation_noise);
-    R_ty_vec.push_back(rotation_noise);
-
-    filter_measurements_struct.Z_tz.push_back(ty_pred);
-    filter_measurements_struct.Z_tz.push_back(rx_pred);
-    filter_measurements_struct.Z_tz.push_back(ry_pred);
-    filter_measurements_struct.Z_tz.push_back(rz_pred);
-
-    R_tz_vec.push_back(translation_noise);
-    R_tz_vec.push_back(rotation_noise);
-    R_tz_vec.push_back(rotation_noise);
-    R_tz_vec.push_back(rotation_noise);
-
-    filter_measurements_struct.Z_rx.push_back(ty_pred);
-    filter_measurements_struct.Z_rx.push_back(tz_pred);
-    filter_measurements_struct.Z_rx.push_back(ry_pred);
-    filter_measurements_struct.Z_rx.push_back(rz_pred);
-
-    R_rx_vec.push_back(translation_noise);
-    R_rx_vec.push_back(translation_noise);
-    R_rx_vec.push_back(rotation_noise);
-    R_rx_vec.push_back(rotation_noise);
-
-    filter_measurements_struct.Z_ry.push_back(ty_pred);
-    filter_measurements_struct.Z_ry.push_back(tz_pred);
-    filter_measurements_struct.Z_ry.push_back(rx_pred);
-    filter_measurements_struct.Z_ry.push_back(rz_pred);
-
-    R_ry_vec.push_back(translation_noise);
-    R_ry_vec.push_back(translation_noise);
-    R_ry_vec.push_back(rotation_noise);
-    R_ry_vec.push_back(rotation_noise);
-
-    filter_measurements_struct.Z_rz.push_back(ty_pred);
-    filter_measurements_struct.Z_rz.push_back(tz_pred);
-    filter_measurements_struct.Z_rz.push_back(rx_pred);
-    filter_measurements_struct.Z_rz.push_back(ry_pred);
-
-    R_rz_vec.push_back(translation_noise);
-    R_rz_vec.push_back(translation_noise);
-    R_rz_vec.push_back(rotation_noise);
-    R_rz_vec.push_back(rotation_noise);
-
-    Mat ir = Mat::zeros(2*sscp_general.left_cam_resy, 3*sscp_general.left_cam_resx, CV_8UC3);
-
-    bool show_points = true;
-    //bool use_good_points = true;
-
-    double min_displacement = 2./resize_factor;
-    double max_t = 0.25;
-    double max_r = 0.05;
-    int w = 100;
-    Mat using_good_points = Mat::zeros(2*w,3*w,CV_8UC3);
-    using_good_points = Scalar(0,0,125);
-
-    double var = 2.;
-    //if(ty_uncertainty < var*translation_transition_noise)
-        use_good_points_ty = true;
-
-    //if(tz_uncertainty < var*translation_transition_noise)
-        use_good_points_tz = true;
-
-    //if(rx_uncertainty < var*rotation_transition_noise)
-        use_good_points_rx = true;
-
-    //if(ry_uncertainty < var*rotation_transition_noise)
-        use_good_points_ry = true;
-
-    //if(rz_uncertainty < var*rotation_transition_noise)
-        use_good_points_rz = true;
-
-    if(ty_uncertainty < var*translation_transition_noise && tz_uncertainty < var*translation_transition_noise)
-    {
-        Mat using_good_points_tx = using_good_points(Range(0,w),Range(0,w));
-        using_good_points_tx = Scalar(0,125,0);
-    }
-
-    if(ty_uncertainty < var*translation_transition_noise)
-    {
-        Mat using_good_points_ty = using_good_points(Range(0,w),Range(w,2*w));
-        using_good_points_ty = Scalar(0,125,0);
-    }
-
-    if(tz_uncertainty < var*translation_transition_noise)
-    {
-        Mat using_good_points_tz = using_good_points(Range(0,w),Range(2*w,3*w));
-        using_good_points_tz = Scalar(0,125,0);
-    }
-
-    if(rx_uncertainty < var*translation_transition_noise)
-    {
-        Mat using_good_points_rx = using_good_points(Range(w,2*w),Range(0,w));
-        using_good_points_rx = Scalar(0,125,0);
-    }
-
-    if(ry_uncertainty < var*translation_transition_noise)
-    {
-        Mat using_good_points_ry = using_good_points(Range(w,2*w),Range(w,2*w));
-        using_good_points_ry = Scalar(0,125,0);
-    }
-
-    if(rz_uncertainty < var*translation_transition_noise)
-    {
-        Mat using_good_points_rz = using_good_points(Range(w,2*w),Range(2*w,3*w));
-        using_good_points_rz = Scalar(0,125,0);
-    }
-
-    imshow("using_good_points", using_good_points);
-
-    for(int j=0; j<number_of_features; j++){
-
-        bool ty_condition = true;
-        bool tz_condition = true;
-        bool rx_condition = true;
-        bool ry_condition = true;
-        bool rz_condition = true;
-
-        if(use_good_points_ty || use_good_points_tz || use_good_points_rx || use_good_points_ry || use_good_points_rz)
-        {
+            //TEMPORARY
             cv::Point3d wp = ImageToWorld(features_left[j].Point, features_right[j].Point, Mat::eye(4,4,CV_64F), cmfscd.transformation_left_cam_to_right_cam, Kleft, Kright);
-            double fx = Kright.at<double>(0,0);
-            double fy = Kright.at<double>(1,1);
-
-            if(use_good_points_ty)
+            Mat left_pt = Mat(1,3,CV_64F);
+            left_pt.at<double>(0,0) = wp.x;
+            left_pt.at<double>(0,1) = wp.y;
+            left_pt.at<double>(0,2) = wp.z;
+            if(!isinf(wp.x) && !isinf(wp.y) && !isinf(wp.z) && wp.z>0 && !isnan(wp.x) && !isnan(wp.y) && !isnan(wp.z))
             {
-                double weight_ty_l = PointWeight_ty(wp.x, wp.y, wp.z, fx, fy, baseline, -max_t, min_displacement);
-                double weight_ty_u = PointWeight_ty(wp.x, wp.y, wp.z, fx, fy, baseline, max_t, min_displacement);
-                ty_condition = (weight_ty_l == 1 || weight_ty_u == 1);
+                filter_measurements_struct.ty_points.push_back(left_pt);
+                filter_measurements_struct.tz_points.push_back(left_pt);
             }
-
-            if(use_good_points_tz)
-            {
-                double weight_tz_l = PointWeight_tz(wp.x, wp.y, wp.z, fx, fy, baseline, -max_t, min_displacement);
-                double weight_tz_u = PointWeight_tz(wp.x, wp.y, wp.z, fx, fy, baseline, max_t, min_displacement);
-                tz_condition = (weight_tz_l == 1 || weight_tz_u == 1);
-            }
-
-            if(use_good_points_rx)
-            {
-                double weight_rx_l = PointWeight_rx(wp.x, wp.y, wp.z, fx, fy, baseline, -max_r, min_displacement);
-                double weight_rx_u = PointWeight_rx(wp.x, wp.y, wp.z, fx, fy, baseline, max_r, min_displacement);
-                rx_condition = (weight_rx_l == 1 || weight_rx_u == 1);
-            }
-
-            if(use_good_points_ry)
-            {
-                double weight_ry_l = PointWeight_ry(wp.x, wp.y, wp.z, fx, fy, baseline, -max_r, min_displacement);
-                double weight_ry_u = PointWeight_ry(wp.x, wp.y, wp.z, fx, fy, baseline, max_r, min_displacement);
-                ry_condition = (weight_ry_l == 1 || weight_ry_u == 1);
-            }
-
-            if(use_good_points_rz)
-            {
-                double weight_rz_l = PointWeight_rz(wp.x, wp.y, wp.z, fx, fy, baseline, -max_r, min_displacement);
-                double weight_rz_u = PointWeight_rz(wp.x, wp.y, wp.z, fx, fy, baseline, max_r, min_displacement);
-                rz_condition = (weight_rz_l == 1 || weight_rz_u == 1);
-            }
-
-        }
-
-        if(show_points)
-        {
-            if(ty_condition)
-            {
-                ir.at<Vec3b>(features_right[j].Point.y, sscp_general.left_cam_resx + features_right[j].Point.x)[1] = 255;
-            }
-            if(tz_condition)
-            {
-                ir.at<Vec3b>(features_right[j].Point.y, 2*sscp_general.left_cam_resx + features_right[j].Point.x)[2] = 255;
-            }
-            if(rx_condition)
-            {
-                ir.at<Vec3b>(sscp_general.left_cam_resy + features_right[j].Point.y, features_right[j].Point.x)[0] = 255;
-            }
-
-            if(ry_condition)
-            {
-                ir.at<Vec3b>(sscp_general.left_cam_resy + features_right[j].Point.y, sscp_general.left_cam_resx + features_right[j].Point.x)[1] = 255;
-            }
-
-            if(rz_condition)
-            {
-                ir.at<Vec3b>(sscp_general.left_cam_resy + features_right[j].Point.y, 2*sscp_general.left_cam_resx + features_right[j].Point.x)[2] = 255;
-            }
-        }
-
-        if(ty_condition)
-        {
-            filter_measurements_struct.Z_ty.push_back(double(features_left[j].Point.x));
-            filter_measurements_struct.Z_ty.push_back(double(features_left[j].Point.y));
-            filter_measurements_struct.Z_ty.push_back(double(features_right[j].Point.x));
-            filter_measurements_struct.Z_ty.push_back(double(features_right[j].Point.y));
+            //TEMPORARY
 
             R_ty_vec.push_back(features_noise);
             R_ty_vec.push_back(features_noise);
@@ -964,6 +687,13 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
             filter_measurements_struct.Z_rx.push_back(double(features_right[j].Point.x));
             filter_measurements_struct.Z_rx.push_back(double(features_right[j].Point.y));
 
+            //TEMPORARY
+            Mat left_image_pt = Mat(1,2,CV_64F);
+            left_image_pt.at<double>(0,0) = features_left[j].Point.x;
+            left_image_pt.at<double>(0,1) = features_left[j].Point.y;
+            filter_measurements_struct.rx_points = left_image_pt;
+            //TEMPORARY
+
             R_rx_vec.push_back(features_noise);
             R_rx_vec.push_back(features_noise);
             R_rx_vec.push_back(features_noise);
@@ -976,6 +706,13 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
             filter_measurements_struct.Z_ry.push_back(double(features_left[j].Point.y));
             filter_measurements_struct.Z_ry.push_back(double(features_right[j].Point.x));
             filter_measurements_struct.Z_ry.push_back(double(features_right[j].Point.y));
+
+            //TEMPORARY
+            Mat left_image_pt = Mat(1,2,CV_64F);
+            left_image_pt.at<double>(0,0) = features_left[j].Point.x;
+            left_image_pt.at<double>(0,1) = features_left[j].Point.y;
+            filter_measurements_struct.ry_points = left_image_pt;
+            //TEMPORARY
 
             R_ry_vec.push_back(features_noise);
             R_ry_vec.push_back(features_noise);
@@ -991,6 +728,13 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
             filter_measurements_struct.Z_rz.push_back(double(features_left[j].Point.y));
             filter_measurements_struct.Z_rz.push_back(double(features_right[j].Point.x));
             filter_measurements_struct.Z_rz.push_back(double(features_right[j].Point.y));
+
+            //TEMPORARY
+            Mat left_image_pt = Mat(1,2,CV_64F);
+            left_image_pt.at<double>(0,0) = features_left[j].Point.x;
+            left_image_pt.at<double>(0,1) = features_left[j].Point.y;
+            filter_measurements_struct.rz_points = left_image_pt;
+            //TEMPORARY
 
             R_rz_vec.push_back(features_noise);
             R_rz_vec.push_back(features_noise);

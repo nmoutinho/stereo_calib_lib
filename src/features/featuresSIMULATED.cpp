@@ -15,14 +15,22 @@ featuresSIMULATED::featuresSIMULATED(void){}
 void featuresSIMULATED::Apply(std::vector<Feature> &Features1, std::vector<Feature> &Features2,
 cv::Mat kleft, cv::Mat kright, int image_w, int image_h, cv::Mat T_1to2, int numberFeatures)
 {
-    int min_distance = 250; //750;
-    int error = 10000;
-    int max_distance = 500;
+    int min_distance = 500; //750;
+    //int error = 10000;
+    int max_distance = 1000;
     //srand(time(NULL));
 
-    Mat images = Mat::zeros(image_h, image_w, CV_8UC3);
     Mat left = Mat::zeros(image_h, image_w, CV_64F);
     Mat right = Mat::zeros(image_h, image_w, CV_64F);
+
+    double fx = kleft.at<double>(0,0);
+    double fy = kleft.at<double>(1,1);
+    double cx = kleft.at<double>(0,2);
+    double cy = kleft.at<double>(1,2);
+    int margin_u = 15;
+    int margin_v = 15;
+    int offset_u = 15; //image_w/2;
+    int offset_v = 15; //image_h/2;
 
     for(int n=0; n<numberFeatures; n++)
     {
@@ -41,41 +49,96 @@ cv::Mat kleft, cv::Mat kright, int image_w, int image_h, cv::Mat T_1to2, int num
             //points for rx
             if(type < 33)
             {
-                z = (rand() % max_distance)+min_distance/2;
-                y = z;// + (rand() % error)-error/2;
+                z = (rand() % max_distance)+min_distance;
+
+                int max_x = 2*(min_distance+max_distance);
+                x = (rand() % max_x)-double(max_x)/2;
+
+
                 int sign = (rand() % 100);
                 if(sign < 50)
-                    y = -y;
-                x = (rand() % max_distance)-max_distance/2;
+                {
+                    int v = image_h - (rand() % margin_v) - offset_v;
+                    y = z*(v-cy)/fy;
+                }
+                else
+                {
+                    int v = (rand() % margin_v) + offset_v;
+                    y = z*(v-cy)/fy;
+                }//*/
+
             }
             //points for ry
             else if(type >= 33 && type < 67)
             {
-                z = (rand() % max_distance)+min_distance/2;
-                x = z;// + (rand() % error)-error/2;
+                z = (rand() % max_distance)+min_distance;
+
+                int max_y = 2*(min_distance+max_distance);
+                y = (rand() % max_y)-double(max_y)/2;
+
+
                 int sign = (rand() % 100);
                 if(sign < 50)
-                    x = -x;
-                y = (rand() % max_distance)-max_distance/2;
+                {
+                   int u = image_w - (rand() % margin_u) - offset_u;
+                    x = z*(u-cx)/fx;
+                }
+                else
+                {
+                    int u = (rand() % margin_u) + offset_u;
+                    x = z*(u-cx)/fx;
+                }//*/
             }
             //points for rz
             else
             {
-                z = (rand() % max_distance)+min_distance/2;
-                double d = z;// + (rand() % error)-error/2;
-                y = (rand() % max_distance)-max_distance/2;
-                x = sqrt(d*d - y*y);
+                z = (rand() % max_distance)+min_distance;
+
+                double margin_u_aux = double(rand() % margin_u);
+
+                double u_aux = image_w-offset_u+margin_u_aux;
+                double v_aux = image_h/2;
+
+                double u_margin_aux = u_aux - image_w/2;
+
+                double x_aux = (u_aux-cx)/fx;
+                double y_aux = (v_aux-cy)/fy;
+
+                double d = sqrt(x_aux*x_aux + y_aux*y_aux);
+
                 int sign = (rand() % 100);
                 if(sign < 50)
-                    x = -x;
+                {
+                   int u =  (rand() % int(u_margin_aux)) + image_w/2;
+                    x = (u-cx)/fx;
+                }
+                else
+                {
+                    int u = (rand() % int(u_margin_aux)) + image_w/2 - u_margin_aux;
+                    x = (u-cx)/fx;
+                }
 
+                sign = (rand() % 100);
+                if(sign < 50)
+                {
+                    //int v = image_h - (rand() % margin_v) - offset_v;
+                    y = z*sqrt(d*d-x*x); //z*(v-cy)/fy;
+                }
+                else
+                {
+                    //int v = (rand() % margin_v) + offset_v;
+                    y = -z*sqrt(d*d-x*x);
+                }
+
+                x = z*x;//*/
             }
         }
         else
         {
-            int max_x_y = 2*(min_distance+max_distance);
-            x = (rand() % max_x_y)-double(max_x_y)/2;
-            y = (rand() % max_x_y)-double(max_x_y)/2;
+            int max_x = 2*(min_distance+max_distance);
+            int max_y = 2*(min_distance+max_distance);
+            x = (rand() % max_x)-double(max_x)/2;
+            y = (rand() % max_y)-double(max_y)/2;
             z = (rand() % max_distance)+min_distance; //min_distance;
         }
 
@@ -119,15 +182,10 @@ cv::Mat kleft, cv::Mat kright, int image_w, int image_h, cv::Mat T_1to2, int num
                 Features1.push_back(feat_left);
                 Features2.push_back(feat_right);
 
-                circle(images, feat_left.Point, 2, Scalar(0,255,0));
-                circle(images, feat_right.Point, 2, Scalar(0,0,255));
             }
 
         }
 
     }
-
-    /*imshow("images", images);
-    waitKey(1);//*/
 
 }

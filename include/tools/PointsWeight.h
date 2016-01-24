@@ -15,7 +15,7 @@ double PointWeight_tz(double x, double y, double z, double fx, double fy, double
 double PointWeight_rx(cv::Point point, cv::Mat K, int image_height);
 double PointWeight_rx(double x, double y, double z, double fx, double fy, double baseline, double rx, double min_displacement);
 
-double PointWeight_ry(cv::Point point, cv::Mat K, int image_width);
+double PointWeight_ry(cv::Point point, cv::Mat K, int image_width, int image_height);
 double PointWeight_ry(double x, double y, double z, double fx, double fy, double baseline, double ry, double min_displacement);
 
 double PointWeight_rz(cv::Point point, cv::Mat K, int image_width, int image_height);

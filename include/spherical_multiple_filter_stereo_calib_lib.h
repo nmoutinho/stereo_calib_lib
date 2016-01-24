@@ -63,6 +63,12 @@ struct filterMeasurementsStruct
     cv::Mat R_rz;
 
     cv::Mat dG_dZ;
+
+    cv::Mat ty_points;
+    cv::Mat tz_points;
+    cv::Mat rx_points;
+    cv::Mat ry_points;
+    cv::Mat rz_points;
 };
 
 class spherical_multiple_filter_stereo_calib {
@@ -121,6 +127,8 @@ class spherical_multiple_filter_stereo_calib {
         double resize_factor;
 
         int total_number_of_features;
+
+        cv::Mat ty_points, tz_points, rx_points, ry_points, rz_points;
 
 	public:
 
