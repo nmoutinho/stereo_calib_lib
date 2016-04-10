@@ -282,6 +282,7 @@ void PointCloudViewer::view(string windowName, bool loop)
         }
 
         imshow(windowName, image);
+
     } while(loop);
 }
 

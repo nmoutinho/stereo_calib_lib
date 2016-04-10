@@ -62,6 +62,7 @@ class PointCloudViewer
     void setImageProperties(double image_w, double image_h, Scalar background_color_=Scalar(0, 0, 0));
 
     private:
+
     void defineCameraParameters(double image_w, double image_h);
     Mat Eular2Rot(double yaw,double pitch, double roll);
     Mat TransformationFromCamToOrigin(double camPos_x, double camPos_y, double camPos_z, double pitch, double yaw);
