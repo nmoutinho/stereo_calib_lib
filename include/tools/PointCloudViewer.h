@@ -46,6 +46,8 @@ class PointCloudViewer
     double z_step;
     double yaw_step;
     double pitch_step;
+
+    //debug
     bool debugActive;
 
     //point cloud
@@ -56,7 +58,7 @@ class PointCloudViewer
     PointCloudViewer(bool debugActive_=false);
 
     void set(std::vector<cv::Point3f> pointCloudPoints, std::vector<cv::Point3f> pointCloudRGB);
-    void view();
+    void view(string windowName, bool loop = false);
     void setImageProperties(double image_w, double image_h, Scalar background_color_=Scalar(0, 0, 0));
 
     private:

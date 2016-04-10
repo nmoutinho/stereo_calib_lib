@@ -69,10 +69,9 @@ void PointCloudViewer::set(std::vector<cv::Point3f> pointCloudPoints, std::vecto
     pointCloudColor = pointCloudRGB;
 }
 
-void PointCloudViewer::view()
+void PointCloudViewer::view(string windowName, bool loop)
 {
-    {
-
+    do {
         image = background_color;
 
         Parallel_PointCloudMapping parallel = Parallel_PointCloudMapping(pointCloud, pointCloudColor, TransfCam2Orig, K, image);
@@ -282,8 +281,8 @@ void PointCloudViewer::view()
             }
         }
 
-        imshow("image", image);
-    }
+        imshow(windowName, image);
+    } while(loop);
 }
 
 Mat PointCloudViewer::TransformationFromCamToOrigin(double camPos_x, double camPos_y, double camPos_z, double pitch, double yaw)
@@ -471,28 +470,29 @@ void PointCloudViewer::drawText(Mat &image)
     int baseline = 0;
 
     double it=1;
-    createTextLabel(image, str_cam_pos_x, Point(0.05*image_w, it*0.05*image_h), Scalar(255, 255, 255));
+    Scalar textColor = Scalar(abs(background_color[0]-255), abs(background_color[1]-255), abs(background_color[2]-255));
+    createTextLabel(image, str_cam_pos_x, Point(0.05*image_w, it*0.05*image_h), textColor);
 
     it+=0.75;
-    createTextLabel(image, str_cam_pos_y, Point(0.05*image_w, it*0.05*image_h), Scalar(255, 255, 255));
+    createTextLabel(image, str_cam_pos_y, Point(0.05*image_w, it*0.05*image_h), textColor);
 
     it+=0.75;
-    createTextLabel(image, str_cam_pos_z, Point(0.05*image_w, it*0.05*image_h), Scalar(255, 255, 255));
+    createTextLabel(image, str_cam_pos_z, Point(0.05*image_w, it*0.05*image_h), textColor);
 
     it+=0.75;
-    createTextLabel(image, str_look_at_x, Point(0.05*image_w, it*0.05*image_h), Scalar(255, 255, 255));
+    createTextLabel(image, str_look_at_x, Point(0.05*image_w, it*0.05*image_h), textColor);
 
     it+=0.75;
-    createTextLabel(image, str_look_at_y, Point(0.05*image_w, it*0.05*image_h), Scalar(255, 255, 255));
+    createTextLabel(image, str_look_at_y, Point(0.05*image_w, it*0.05*image_h), textColor);
 
     it+=0.75;
-    createTextLabel(image, str_look_at_z, Point(0.05*image_w, it*0.05*image_h), Scalar(255, 255, 255));
+    createTextLabel(image, str_look_at_z, Point(0.05*image_w, it*0.05*image_h), textColor);
 
     it+=0.75;
-    createTextLabel(image, str_pitch, Point(0.05*image_w, it*0.05*image_h), Scalar(255, 255, 255));
+    createTextLabel(image, str_pitch, Point(0.05*image_w, it*0.05*image_h), textColor);
 
     it+=0.75;
-    createTextLabel(image, str_yaw, Point(0.05*image_w, it*0.05*image_h), Scalar(255, 255, 255));
+    createTextLabel(image, str_yaw, Point(0.05*image_w, it*0.05*image_h), textColor);
 
 }
 
