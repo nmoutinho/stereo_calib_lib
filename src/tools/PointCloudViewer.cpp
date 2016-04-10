@@ -4,6 +4,8 @@ PointCloudViewer::PointCloudViewer(bool debugActive_)
 {
     debugActive = debugActive_;
 
+    useDepthColormap = false;
+
     reference_image_w = 640;
     reference_image_h = 480;
 
@@ -63,6 +65,85 @@ void PointCloudViewer::setImageProperties(double image_w, double image_h, Scalar
     background_color = background_color_;
 }
 
+void PointCloudViewer::setColormap(double minDepth, double maxDepth)
+{
+    useDepthColormap = true;
+    colormapMinDepth = minDepth;
+    colormapMaxDepth = maxDepth;
+}
+
+Scalar PointCloudViewer::getDepthColormap(double depth, double minDepth, double maxDepth)
+{
+    double number_intervals = 4;
+    double interval = (maxDepth-minDepth)/number_intervals;
+
+    if(depth < minDepth)
+    {
+        return Scalar(0, 0, 255);
+    }
+    else if(depth >= minDepth && depth < minDepth + interval)
+    {
+        double blue = 0;
+        double red = 255;
+
+        double z0 = minDepth;
+        double z1 = minDepth + interval;
+
+        double m = 255/(z1-z0);
+        double b = -255*z0/(z1-z0);
+        double green = m*depth + b;
+
+        return Scalar(blue, green, red);
+    }
+    else if(depth >= minDepth + interval && depth < minDepth + 2*interval)
+    {
+        double blue = 0;
+        double green = 255;
+
+        double z0 = minDepth + interval;
+        double z1 = minDepth + 2*interval;
+
+        double m = 255/(z0-z1);
+        double b = -255*z1/(z0-z1);
+        double red = m*depth + b;
+
+        return Scalar(blue, green, red);
+    }
+    else if(depth >= minDepth + 2*interval && depth < minDepth + 3*interval)
+    {
+        double red = 0;
+        double green = 255;
+
+        double z0 = minDepth + 2*interval;
+        double z1 = minDepth + 3*interval;
+
+        double m = 255/(z1-z0);
+        double b = -255*z0/(z1-z0);
+        double blue = m*depth + b;
+
+        return Scalar(blue, green, red);
+    }
+    else if(depth >= minDepth + 3*interval && depth < minDepth + 4*interval)
+    {
+        double red = 0;
+        double blue = 255;
+
+        double z0 = minDepth + 3*interval;
+        double z1 = minDepth + 4*interval;
+
+        double m = 255/(z0-z1);
+        double b = -255*z1/(z0-z1);
+        double green = m*depth + b;
+
+        return Scalar(blue, green, red);
+    }
+    else if(depth > minDepth + 4*interval)
+    {
+        return Scalar(255, 0, 0);
+    }
+
+}
+
 void PointCloudViewer::set(std::vector<cv::Point3f> pointCloudPoints, std::vector<cv::Point3f> pointCloudRGB)
 {
     pointCloud = pointCloudPoints;
@@ -74,8 +155,31 @@ void PointCloudViewer::view(string windowName, bool loop)
     do {
         image = background_color;
 
-        Parallel_PointCloudMapping parallel = Parallel_PointCloudMapping(pointCloud, pointCloudColor, TransfCam2Orig, K, image);
-        cv::parallel_for_(cv::Range(0, pointCloud.size()), parallel);//*/
+        for (int i = 0; i < pointCloud.size(); i++)
+        {
+            Mat point = Mat::ones(4,1,CV_64F);
+            point.at<double>(0,0) = pointCloud[i].x;
+            point.at<double>(1,0) = pointCloud[i].y;
+            point.at<double>(2,0) = pointCloud[i].z;
+
+            Mat projected_point = TransfCam2Orig*point;
+
+            double depth = projected_point.at<double>(2,0);
+
+            if(depth > 0)
+            {
+                Mat norm_point = Mat::ones(3,1,CV_64F);
+                norm_point.at<double>(0,0) = projected_point.at<double>(0,0)/projected_point.at<double>(2,0);
+                norm_point.at<double>(1,0) = projected_point.at<double>(1,0)/projected_point.at<double>(2,0);
+
+                Mat image_point = K*norm_point;
+
+                if(useDepthColormap)
+                    circle(image, Point(image_point.at<double>(0,0),image_point.at<double>(1,0)), 2, getDepthColormap(pointCloud[i].z, colormapMinDepth, colormapMaxDepth), -1);
+                else
+                    circle(image, Point(image_point.at<double>(0,0),image_point.at<double>(1,0)), 2, Scalar(pointCloudColor[i].x,pointCloudColor[i].y,pointCloudColor[i].z), -1);
+            }
+        }
 
         //draw axis
         drawAxis(image, K, TransfCam2Orig, 2);
