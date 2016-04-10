@@ -431,6 +431,14 @@ spherical_multiple_filter_stereo_disparity_data spherical_multiple_filter_stereo
     spherical_multiple_filter_stereo_disparity_data sdd;
     spherical_multiple_filter_stereo_calib_data scd = get_calibrated_transformations();
 
+    sdd = get_disparity_map(left_image, right_image, scd.t_left_cam_to_right_cam, scd.R_left_cam_to_right_cam);
+    return sdd;
+}
+
+spherical_multiple_filter_stereo_disparity_data spherical_multiple_filter_stereo_calib::get_disparity_map(cv::Mat left_image, cv::Mat right_image, cv::Mat t_left_cam_to_right_cam, cv::Mat R_left_cam_to_right_cam)
+{
+    spherical_multiple_filter_stereo_disparity_data sdd;
+
     cv::Mat R1(3,3,CV_64F), R2(3,3,CV_64F);
     Mat stereo_left_calib_mat, stereo_right_calib_mat;
     Mat Q;
@@ -438,7 +446,7 @@ spherical_multiple_filter_stereo_disparity_data spherical_multiple_filter_stereo
     Mat stereo_rectification_map1_left, stereo_rectification_map2_left, stereo_rectification_map1_right, stereo_rectification_map2_right;
     Mat rectified_left_image, rectified_right_image;
 
-	cv::stereoRectify(Kleft, Mat::zeros(5,1,CV_64F), Kright, Mat::zeros(5,1,CV_64F), Size(left_image.cols, left_image.rows), scd.R_left_cam_to_right_cam, scd.t_left_cam_to_right_cam, R1, R2,
+	cv::stereoRectify(Kleft, Mat::zeros(5,1,CV_64F), Kright, Mat::zeros(5,1,CV_64F), Size(left_image.cols, left_image.rows), R_left_cam_to_right_cam, t_left_cam_to_right_cam, R1, R2,
                    stereo_left_calib_mat, stereo_right_calib_mat, Q, CV_CALIB_ZERO_DISPARITY,0, Size(left_image.cols, left_image.rows));
 
 	cv::initUndistortRectifyMap(Kleft, Mat::zeros(5,1,CV_64F), R1, stereo_left_calib_mat, Size(left_image.cols, left_image.rows), CV_16SC2, stereo_rectification_map1_left, stereo_rectification_map2_left);
@@ -470,8 +478,8 @@ spherical_multiple_filter_stereo_disparity_data spherical_multiple_filter_stereo
     sdd.point_cloud_xyz = Mat::zeros(left_image.rows, left_image.cols, CV_64FC3);
     sdd.disparity_values = Mat::zeros(Disparity.rows,Disparity.cols, CV_64F);
 
-	for (int r=0; r<Disparity.rows; r=r+25){
-		for (int c=0; c<Disparity.cols; c=c+25){
+	for (int r=0; r<Disparity.rows; r++){
+		for (int c=0; c<Disparity.cols; c=c++){
 
             sdd.disparity_values.at<double>(r,c) = -double(Disparity.at<short>(r,c))/16;
             //disparity_values.at<double>(r,c) = -double(Disparity.at<short>(r,c))/16;
@@ -565,7 +573,7 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
 
     Mat ir = Mat::zeros(2*sscp_general.left_cam_resy, 3*sscp_general.left_cam_resx, CV_8UC3);
 
-    bool show_points = true;
+    bool show_points = false;
     //bool use_good_points = true;
 
     //double threshold_all = 0.0;

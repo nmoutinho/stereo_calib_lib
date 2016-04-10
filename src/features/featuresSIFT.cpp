@@ -120,7 +120,7 @@ void featuresSIFT::Apply(const cv::Mat &Img1, const cv::Mat &Img2, std::vector<F
                 }
             }//*/
 
-            Mat img_matches;
+            /*Mat img_matches;
             drawMatches( Img1, kp1, Img2, kp2,
                    good_matches, img_matches, Scalar::all(-1), Scalar::all(-1),
                    vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
