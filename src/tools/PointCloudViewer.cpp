@@ -150,7 +150,7 @@ void PointCloudViewer::createColormapLegend(Mat &image)
 {
     double barH = 0.6*image.rows;
     double barW = 0.025*image.cols;
-    double interval = (colormapMaxDepth-colormapMinDepth)/4;
+    double interval = round(barH/4);
 
     Scalar textColor = Scalar(abs(background_color[0]-255), abs(background_color[1]-255), abs(background_color[2]-255));
 
@@ -158,10 +158,10 @@ void PointCloudViewer::createColormapLegend(Mat &image)
     Mat bar = image(Range((image.rows-barH)/2, (image.rows-barH)/2+barH), Range(image.cols-6*barW, image.cols-5*barW));
     for(int r=0; r<bar.rows; r++)
     {
-        double depth = (colormapMaxDepth-colormapMinDepth)*r/barH;
+        double depth = (colormapMaxDepth-colormapMinDepth)*r/barH+colormapMinDepth;
         Scalar color = getDepthColormap(depth, colormapMinDepth, colormapMaxDepth);
         bar.row(r) = color;
-        if(depth == colormapMinDepth+it*interval)
+        if(r == it*interval)
         {
             stringstream ss;
             ss << depth;
@@ -171,7 +171,7 @@ void PointCloudViewer::createColormapLegend(Mat &image)
         }
     }
 
-    double depth = (colormapMaxDepth-colormapMinDepth)*bar.rows/barH;
+    double depth = (colormapMaxDepth-colormapMinDepth)*bar.rows/barH+colormapMinDepth;
     stringstream ss;
     ss << depth;
     string ss_str = ss.str()+"mm";
