@@ -54,6 +54,7 @@ class PointCloudViewer
     bool useDepthColormap;
     double colormapMinDepth;
     double colormapMaxDepth;
+    bool insertColormapLegend;
 
     //point cloud
     std::vector<cv::Point3f> pointCloud;
@@ -65,7 +66,7 @@ class PointCloudViewer
     void set(std::vector<cv::Point3f> pointCloudPoints, std::vector<cv::Point3f> pointCloudRGB);
     void view(string windowName, bool loop = false);
     void setImageProperties(double image_w, double image_h, Scalar background_color_=Scalar(0, 0, 0));
-    void setColormap(double minDepth, double maxDepth);
+    void setColormap(double minDepth, double maxDepth, bool insertColormapLegend_=true);
 
     private:
 
@@ -76,6 +77,7 @@ class PointCloudViewer
     void drawAxis(Mat &image, Mat K, Mat TransfCam2Orig, int lineThickness);
     void drawText(Mat &image);
     void createTextLabel(Mat &image, string text, Point textPos, Scalar textColor);
+    void createColormapLegend(Mat &image);
 };
 
 #endif

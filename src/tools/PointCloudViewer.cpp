@@ -65,8 +65,10 @@ void PointCloudViewer::setImageProperties(double image_w, double image_h, Scalar
     background_color = background_color_;
 }
 
-void PointCloudViewer::setColormap(double minDepth, double maxDepth)
+void PointCloudViewer::setColormap(double minDepth, double maxDepth, bool insertColormapLegend_)
 {
+    insertColormapLegend = insertColormapLegend_;
+
     useDepthColormap = true;
     colormapMinDepth = minDepth;
     colormapMaxDepth = maxDepth;
@@ -144,6 +146,38 @@ Scalar PointCloudViewer::getDepthColormap(double depth, double minDepth, double 
 
 }
 
+void PointCloudViewer::createColormapLegend(Mat &image)
+{
+    double barH = 0.6*image.rows;
+    double barW = 0.025*image.cols;
+    double interval = (colormapMaxDepth-colormapMinDepth)/4;
+
+    Scalar textColor = Scalar(abs(background_color[0]-255), abs(background_color[1]-255), abs(background_color[2]-255));
+
+    int it=0;
+    Mat bar = image(Range((image.rows-barH)/2, (image.rows-barH)/2+barH), Range(image.cols-6*barW, image.cols-5*barW));
+    for(int r=0; r<bar.rows; r++)
+    {
+        double depth = (colormapMaxDepth-colormapMinDepth)*r/barH;
+        Scalar color = getDepthColormap(depth, colormapMinDepth, colormapMaxDepth);
+        bar.row(r) = color;
+        if(depth == colormapMinDepth+it*interval)
+        {
+            stringstream ss;
+            ss << depth;
+            string ss_str = ss.str()+"mm";
+            createTextLabel(image, ss_str, Point(image.cols-4.75*barW, r+(image.rows-barH)/2), textColor);
+            it++;
+        }
+    }
+
+    double depth = (colormapMaxDepth-colormapMinDepth)*bar.rows/barH;
+    stringstream ss;
+    ss << depth;
+    string ss_str = ss.str()+"mm";
+    createTextLabel(image, ss_str, Point(image.cols-4.75*barW, bar.rows+(image.rows-barH)/2), textColor);
+}
+
 void PointCloudViewer::set(std::vector<cv::Point3f> pointCloudPoints, std::vector<cv::Point3f> pointCloudRGB)
 {
     pointCloud = pointCloudPoints;
@@ -179,6 +213,11 @@ void PointCloudViewer::view(string windowName, bool loop)
                 else
                     circle(image, Point(image_point.at<double>(0,0),image_point.at<double>(1,0)), 2, Scalar(pointCloudColor[i].x,pointCloudColor[i].y,pointCloudColor[i].z), -1);
             }
+        }
+
+        if(useDepthColormap && insertColormapLegend)
+        {
+            createColormapLegend(image);
         }
 
         //draw axis
