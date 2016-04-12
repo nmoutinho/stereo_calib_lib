@@ -102,7 +102,7 @@ void featuresSIFT::Apply(const cv::Mat &Img1, const cv::Mat &Img2, std::vector<F
         }
 
         Mat outliers;
-        if(f1_pts.size()>1)
+        if(f1_pts.size()>4)
         {
             findHomography(f1_pts, f2_pts, CV_RANSAC, 3, outliers);
 

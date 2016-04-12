@@ -34,6 +34,9 @@ PointCloudViewer::PointCloudViewer(bool debugActive_)
     pitch = original_pitch;
     yaw = original_yaw;
 
+    colormapMinDepth = 0;
+    colormapMaxDepth = 1000;
+
     x_step = 10;
     y_step = 10;
     z_step = 10;
@@ -397,6 +400,12 @@ void PointCloudViewer::view(string windowName, bool loop)
 
                 TransfCam2Orig = TransformationFromCamToOrigin(camPos_x, camPos_y, camPos_z, pitch, yaw);
 
+                break;
+            }
+            case 'c':
+            {
+                useDepthColormap = !useDepthColormap;
+                insertColormapLegend = useDepthColormap;
                 break;
             }
 
