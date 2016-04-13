@@ -116,9 +116,9 @@ The system receives only left and right images as input. To initialize the stere
 
 If for some reason you need to rectify your images and remove the radial distortion before applying them to the spherical_multiple_filter_stereo_calib, you can use the imagesBase class, as shown in Example.
 
-## Example - using raw uncalibrated images from USB cameras
+## Example
 
-This example uses OpenCv:
+This example uses OpenCv, with uncalibrated images from USB cameras:
 
 	#include <opencv/cv.h>
 	#include <opencv/highgui.h>
