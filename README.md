@@ -12,8 +12,9 @@ To use stereo_calib_lib you need the follwing libraries:
  - gcc
  - Cmake >= 2.8
  - OpenCv >= 2.4.9
+ - Boost
 
-## Configure the system (on Ubuntu 12.04 LTS or 14.04 LTS) - installing gcc, Cmake and OpenCv 2.4.9
+## Configure the system (on Ubuntu 12.04 LTS or 14.04 LTS) - installing gcc, Boost, Cmake and OpenCv 2.4.9
 
 OK, so the first step is to make sure that everything in the system is updated and upgraded. Open the terminal and write this:
 
@@ -23,6 +24,10 @@ OK, so the first step is to make sure that everything in the system is updated a
 Now, you need to install many dependencies, such as support for reading and writing image files, drawing on the screen, some needed tools, other libraries, etc... This step is very easy, you only need to write the following command in the Terminal:
 
 	>> sudo apt-get install build-essential libgtk2.0-dev libjpeg-dev libtiff4-dev libjasper-dev libopenexr-dev cmake python-dev python-numpy python-tk libtbb-dev libeigen3-dev yasm libfaac-dev libopencore-amrnb-dev libopencore-amrwb-dev libtheora-dev libvorbis-dev libxvidcore-dev libx264-dev libqt4-dev libqt4-opengl-dev sphinx-common texlive-latex-extra libv4l-dev libdc1394-22-dev libavcodec-dev libavformat-dev libswscale-dev default-jdk ant libvtk5-qt4-dev
+
+Install boost in your system:
+
+	>> sudo apt-get install libboost-all-dev
 
 Time to get the OpenCV 2.4.9 source code:
 
