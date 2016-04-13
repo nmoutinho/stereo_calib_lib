@@ -99,12 +99,14 @@ The system receives only left and right images as input. To initialize the stere
  - spherical_multiple_filter_stereo_calib_params
 
 	- baseline: in mm
+
 	- left_cam_resx: width of your left image
 	- left_cam_resy: height of your left image
 	- left_cam_cx: left image principal point x
 	- left_cam_cy: left image principal point y
 	- left_cam_fx: left image focal length x
 	- left_cam_fy: left image focal length y
+
 	- right_cam_resx: width of your right image
 	- right_cam_resy: height of your right image
 	- right_cam_cx: right image principal point x
