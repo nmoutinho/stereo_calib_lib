@@ -80,12 +80,13 @@ Finally, close the console and open a new one, restart the computer or logout an
 
 ## Installing the stereo_calib_lib repository
 
-First you have to download the repository to any _FOLDER_ in your PC, by doing:
+First you must download the repository to a directory stereo_calib_lib in your PC, by doing:
+	
+	>> mkdir stereo_calib_lib
+	>> cd stereo_calib_lib
+	>> git clone https://github.com/nmoutinho/stereo_calib_lib.git .
 
-	>> cd _FOLDER_
-	>> git clone https://github.com/nmoutinho/stereo_calib_lib.git
-
-You now need to link the stereo_calib_lib respository to your project. You can do this by creating a symbolic link to _FOLDER_/stereo_calib_lib in the root of your project, where your CMakeLists.txt file is located. In the CMakeLists.txt file of your project, add the following line:
+You now must link the stereo_calib_lib respository to your project. You can do this by creating a symbolic link to stereo_calib_lib in the root of your project, where your CMakeLists.txt file is located. In the CMakeLists.txt file of your project, add the following line:
 
 	>> add_subdirectory(stereo_calib_lib)
 
@@ -170,7 +171,7 @@ This example uses OpenCv:
 	    int width = iip.left_resx;
 	    int height = iip.left_resy;
 
-	    double resize_factor = 2.;
+	    double resize_factor = 2.5;
 
 	    //set the parameters for the stereo calibration system
 	    spherical_multiple_filter_stereo_calib_params cscp_general;
