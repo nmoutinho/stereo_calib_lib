@@ -10,7 +10,6 @@ using namespace cv;
 
 class PointCloudViewer
 {
-
     //image properties
     double image_w;
     double image_h;
