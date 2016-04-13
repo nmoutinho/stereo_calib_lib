@@ -115,14 +115,7 @@ class spherical_multiple_filter_stereo_calib {
         bool use_measurements;
         bool filters_converged;
 
-        bool use_good_points;
         bool use_close_points;
-
-        bool use_good_points_ty;
-        bool use_good_points_tz;
-        bool use_good_points_rx;
-        bool use_good_points_ry;
-        bool use_good_points_rz;
 
         double resize_factor;
 

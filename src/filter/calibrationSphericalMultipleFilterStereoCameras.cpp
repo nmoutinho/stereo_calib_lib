@@ -56,16 +56,7 @@ Mat calibrationSphericalMultipleFilterStereoCameras::G(Mat X_k, Mat Z) const{
 			Z_FRkplus1.at<double>(2*i+1,0) = Z.at<double>(Num_Fix_Measurements + 4*i + 3,0);
 
 		}
-		//Num_Fix_Measurements = Num_Fix_Measurements + 2*NumPoints;
 		Num_Fix_Measurements = Num_Fix_Measurements + 4*NumPoints;
-
-		/*for(int i=0; i<NumPoints; i++){
-
-			Z_FRkplus1.at<double>(2*i,0) = Z.at<double>(Num_Fix_Measurements + 2*i,0);
-			Z_FRkplus1.at<double>(2*i+1,0) = Z.at<double>(Num_Fix_Measurements + 2*i+1,0);
-
-		}
-		Num_Fix_Measurements = Num_Fix_Measurements + 2*NumPoints;//*/
 	}
 
 	//Innovation for the image points
@@ -108,15 +99,7 @@ cv::Mat calibrationSphericalMultipleFilterStereoCameras::dG_dZ(const cv::Mat &X_
 			Z_FRkplus1.at<double>(2*i,0) = Z_k.at<double>(Num_Fix_Measurements + 4*i + 2,0);
 			Z_FRkplus1.at<double>(2*i+1,0) = Z_k.at<double>(Num_Fix_Measurements + 4*i + 3,0);
 		}
-		//Num_Fix_Measurements = Num_Fix_Measurements + 2*NumPoints;
 		Num_Fix_Measurements = Num_Fix_Measurements + 4*NumPoints;
-
-		/*for(int i=0; i<NumPoints; i++){
-
-			Z_FRkplus1.at<double>(2*i,0) = Z_k.at<double>(Num_Fix_Measurements + 2*i,0);
-			Z_FRkplus1.at<double>(2*i+1,0) = Z_k.at<double>(Num_Fix_Measurements + 2*i+1,0);
-		}
-		Num_Fix_Measurements = Num_Fix_Measurements + 2*NumPoints;//*/
 	}
 
 	Mat dG_dZ = Mat::zeros(Flag_Cameras_Measurements*NumPoints,Z_k.rows,CV_64F);
@@ -125,7 +108,6 @@ cv::Mat calibrationSphericalMultipleFilterStereoCameras::dG_dZ(const cv::Mat &X_
 
 	    //dGF_dZEk+1
         Mat dg_dTr_Rot = dG_dZ(Range(0,NumPoints),Range(0,4));
-        //tmp=dG_dZ(Range(0,1),Range(0, NumEncodersMeasurements));
         Diff(boost::bind(& calibrationSphericalMultipleFilterStereoCameras::G_F, this, X_k, _1, Z_FLkplus1, Z_FRkplus1, _2), Z_Tr_Rot, dg_dTr_Rot);
 
         //dGF_dZFLk+1
