@@ -215,6 +215,9 @@ void PointCloudViewer::view(string windowName, bool loop)
         for (int i = 0; i < imageProjectedPointsX.cols; i++)
         {
             double depth = projectedPointCloudMat.at<double>(2,i);
+            double norm = sqrt(pointCloudMat.at<double>(0,i)*pointCloudMat.at<double>(0,i) +
+            pointCloudMat.at<double>(1,i)*pointCloudMat.at<double>(1,i) +
+            pointCloudMat.at<double>(2,i)*pointCloudMat.at<double>(2,i));
 
             if(depth > 0)
             {
