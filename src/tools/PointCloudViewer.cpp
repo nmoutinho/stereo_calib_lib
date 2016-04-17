@@ -183,7 +183,16 @@ void PointCloudViewer::createColormapLegend(Mat &image)
 
 void PointCloudViewer::set(std::vector<cv::Point3f> pointCloudPoints, std::vector<cv::Point3f> pointCloudRGB)
 {
-    pointCloud = pointCloudPoints;
+    //pointCloud = pointCloudPoints;
+
+    pointCloudMat = Mat::ones(4,pointCloudPoints.size(), CV_64F);
+    for(int i=0; i<pointCloudPoints.size(); i++)
+    {
+        pointCloudMat.at<double>(0,i) = pointCloudPoints[i].x;
+        pointCloudMat.at<double>(1,i) = pointCloudPoints[i].y;
+        pointCloudMat.at<double>(2,i) = pointCloudPoints[i].z;
+    }
+
     pointCloudColor = pointCloudRGB;
 }
 
@@ -192,29 +201,27 @@ void PointCloudViewer::view(string windowName, bool loop)
     do {
         image = background_color;
 
-        for (int i = 0; i < pointCloud.size(); i++)
+        Mat TransfCam2Orig_ = TransfCam2Orig(Range(0,3),Range(0,4));
+        Mat ProjectionTransfCam2Orig = K*TransfCam2Orig_;
+        Mat projectedPoints = ProjectionTransfCam2Orig*pointCloudMat;
+
+        Mat imageProjectedPointsX;
+        Mat imageProjectedPointsY;
+        divide(projectedPoints.row(0), projectedPoints.row(2), imageProjectedPointsX);
+        divide(projectedPoints.row(1), projectedPoints.row(2), imageProjectedPointsY);
+
+        Mat projectedPointCloudMat = TransfCam2Orig*pointCloudMat;
+
+        for (int i = 0; i < imageProjectedPointsX.cols; i++)
         {
-            Mat point = Mat::ones(4,1,CV_64F);
-            point.at<double>(0,0) = pointCloud[i].x;
-            point.at<double>(1,0) = pointCloud[i].y;
-            point.at<double>(2,0) = pointCloud[i].z;
-
-            Mat projected_point = TransfCam2Orig*point;
-
-            double depth = projected_point.at<double>(2,0);
+            double depth = projectedPointCloudMat.at<double>(2,i);
 
             if(depth > 0)
             {
-                Mat norm_point = Mat::ones(3,1,CV_64F);
-                norm_point.at<double>(0,0) = projected_point.at<double>(0,0)/projected_point.at<double>(2,0);
-                norm_point.at<double>(1,0) = projected_point.at<double>(1,0)/projected_point.at<double>(2,0);
-
-                Mat image_point = K*norm_point;
-
                 if(useDepthColormap)
-                    circle(image, Point(image_point.at<double>(0,0),image_point.at<double>(1,0)), 2, getDepthColormap(pointCloud[i].z, colormapMinDepth, colormapMaxDepth), -1);
+                    circle(image, Point(imageProjectedPointsX.at<double>(0,i),imageProjectedPointsY.at<double>(0,i)), 2, getDepthColormap(pointCloudMat.at<double>(2,i), colormapMinDepth, colormapMaxDepth), -1);
                 else
-                    circle(image, Point(image_point.at<double>(0,0),image_point.at<double>(1,0)), 2, Scalar(pointCloudColor[i].x,pointCloudColor[i].y,pointCloudColor[i].z), -1);
+                    circle(image, Point(imageProjectedPointsX.at<double>(0,i),imageProjectedPointsY.at<double>(0,i)), 2, Scalar(pointCloudColor[i].x,pointCloudColor[i].y,pointCloudColor[i].z), -1);
             }
         }
 

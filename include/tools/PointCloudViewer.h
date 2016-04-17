@@ -58,6 +58,7 @@ class PointCloudViewer
 
     //point cloud
     std::vector<cv::Point3f> pointCloud;
+    Mat pointCloudMat;
     std::vector<cv::Point3f> pointCloudColor;
 
     public:
