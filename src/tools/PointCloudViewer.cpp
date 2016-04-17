@@ -222,7 +222,7 @@ void PointCloudViewer::view(string windowName, bool loop)
             if(depth > 0)
             {
                 if(useDepthColormap)
-                    circle(image, Point(imageProjectedPointsX.at<double>(0,i),imageProjectedPointsY.at<double>(0,i)), 2, getDepthColormap(pointCloudMat.at<double>(2,i), colormapMinDepth, colormapMaxDepth), -1);
+                    circle(image, Point(imageProjectedPointsX.at<double>(0,i),imageProjectedPointsY.at<double>(0,i)), 2, getDepthColormap(norm, colormapMinDepth, colormapMaxDepth), -1);
                 else
                     circle(image, Point(imageProjectedPointsX.at<double>(0,i),imageProjectedPointsY.at<double>(0,i)), 2, Scalar(pointCloudColor[i].x,pointCloudColor[i].y,pointCloudColor[i].z), -1);
             }
