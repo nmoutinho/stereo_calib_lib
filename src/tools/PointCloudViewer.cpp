@@ -37,11 +37,11 @@ PointCloudViewer::PointCloudViewer(bool debugActive_)
     colormapMinDepth = 0;
     colormapMaxDepth = 1000;
 
-    x_step = 10;
-    y_step = 10;
-    z_step = 10;
-    yaw_step = 1;
-    pitch_step = 1;
+    x_step = 50;
+    y_step = 50;
+    z_step = 50;
+    yaw_step = 2.5;
+    pitch_step = 2.5;
 
     TransfCam2Orig = TransformationFromCamToOrigin(camPos_x, camPos_y, camPos_z, pitch, yaw);
 }
@@ -259,7 +259,6 @@ void PointCloudViewer::view(string windowName, bool loop)
                 pitch = original_pitch;
                 yaw = original_yaw;
 
-                //TransfCam2Orig = TransformationFromCamToOrigin(camPos_x, camPos_y, camPos_z, lookAt_x, lookAt_y, lookAt_z);
                 TransfCam2Orig = TransformationFromCamToOrigin(camPos_x, camPos_y, camPos_z, pitch, yaw);
 
                 break;
@@ -267,10 +266,8 @@ void PointCloudViewer::view(string windowName, bool loop)
 
             case 'a':
             {
-                camPos_x -= cos(pitch)*x_step;
-                camPos_z -= -sin(pitch)*cos(yaw)*x_step;
-                lookAt_x -= cos(pitch)*x_step;
-                lookAt_z -= -sin(pitch)*cos(yaw)*x_step;
+                camPos_x -= x_step;
+                lookAt_x -= x_step;
 
                 TransfCam2Orig = TransformationFromCamToOrigin(camPos_x, camPos_y, camPos_z, pitch, yaw);
 
@@ -279,10 +276,8 @@ void PointCloudViewer::view(string windowName, bool loop)
 
             case 'd':
             {
-                camPos_x += cos(pitch)*x_step;
-                camPos_z += -sin(pitch)*cos(yaw)*x_step;
-                lookAt_x += cos(pitch)*x_step;
-                lookAt_z += -sin(pitch)*cos(yaw)*x_step;
+                camPos_x += x_step;
+                lookAt_x += x_step;
 
                 TransfCam2Orig = TransformationFromCamToOrigin(camPos_x, camPos_y, camPos_z, pitch, yaw);
 
@@ -291,12 +286,8 @@ void PointCloudViewer::view(string windowName, bool loop)
 
             case 'w':
             {
-                camPos_x += -sin(pitch)*z_step;
-                camPos_y += -sin(yaw)*z_step;
-                camPos_z += cos(pitch)*cos(yaw)*z_step;
-                lookAt_x += -sin(pitch)*z_step;
-                lookAt_y += -sin(yaw)*z_step;
-                lookAt_z += cos(pitch)*cos(yaw)*z_step;
+                camPos_z += z_step;
+                lookAt_z += z_step;
 
                 TransfCam2Orig = TransformationFromCamToOrigin(camPos_x, camPos_y, camPos_z, pitch, yaw);
 
@@ -305,12 +296,8 @@ void PointCloudViewer::view(string windowName, bool loop)
 
             case 's':
             {
-                camPos_x -= -sin(pitch)*z_step;
-                camPos_y -= -sin(yaw)*z_step;
-                camPos_z -= cos(pitch)*cos(yaw)*z_step;
-                lookAt_x -= -sin(pitch)*z_step;
-                lookAt_y -= -sin(yaw)*z_step;
-                lookAt_z -= cos(pitch)*cos(yaw)*z_step;
+                camPos_z -= z_step;
+                lookAt_z -= z_step;
 
                 TransfCam2Orig = TransformationFromCamToOrigin(camPos_x, camPos_y, camPos_z, pitch, yaw);
 
@@ -319,10 +306,8 @@ void PointCloudViewer::view(string windowName, bool loop)
 
             case 'y':
             {
-                camPos_y -= cos(yaw)*y_step;
-                camPos_z -= -cos(pitch)*sin(yaw)*y_step;
-                lookAt_y -= cos(yaw)*y_step;
-                lookAt_z -= -cos(pitch)*sin(yaw)*y_step;
+                camPos_y -= y_step;
+                lookAt_y -= y_step;
 
                 TransfCam2Orig = TransformationFromCamToOrigin(camPos_x, camPos_y, camPos_z, pitch, yaw);
 
@@ -343,10 +328,10 @@ void PointCloudViewer::view(string windowName, bool loop)
 
             case 'i':
             {
-                double y=(lookAt_y-camPos_y);
-                double z=(lookAt_z-camPos_z);
-
-                double vert_d = sqrt(y*y+z*z);
+                Mat l = Mat::zeros(3,1,CV_64F);
+                l.at<double>(0,0) = lookAt_x-camPos_x;
+                l.at<double>(1,0) = lookAt_y-camPos_y;
+                l.at<double>(2,0) = lookAt_z-camPos_z;
 
                 yaw -= yaw_step*CV_PI/180.;
                 if(yaw < -2*CV_PI)
@@ -354,11 +339,11 @@ void PointCloudViewer::view(string windowName, bool loop)
                 if(yaw > 2*CV_PI)
                     yaw = 0;
 
-                y = -sin(yaw)*vert_d;
-                z = sqrt(vert_d*vert_d - y*y);
-
-                camPos_y = lookAt_y-y;
-                camPos_z = lookAt_z-z;
+                Mat R = Eular2Rot(yaw, pitch, 0);
+                Mat ln = R*l;
+                lookAt_x = ln.at<double>(0,0)+camPos_x;
+                lookAt_y = ln.at<double>(1,0)+camPos_y;
+                lookAt_z = ln.at<double>(2,0)+camPos_z;
 
                 TransfCam2Orig = TransformationFromCamToOrigin(camPos_x, camPos_y, camPos_z, pitch, yaw);
 
@@ -367,10 +352,10 @@ void PointCloudViewer::view(string windowName, bool loop)
 
             case 'k':
             {
-                double y=(lookAt_y-camPos_y);
-                double z=(lookAt_z-camPos_z);
-
-                double vert_d = sqrt(y*y+z*z);
+                Mat l = Mat::zeros(3,1,CV_64F);
+                l.at<double>(0,0) = lookAt_x-camPos_x;
+                l.at<double>(1,0) = lookAt_y-camPos_y;
+                l.at<double>(2,0) = lookAt_z-camPos_z;
 
                 yaw += yaw_step*CV_PI/180.;
                 if(yaw < -2*CV_PI)
@@ -378,11 +363,11 @@ void PointCloudViewer::view(string windowName, bool loop)
                 if(yaw > 2*CV_PI)
                     yaw = 0;
 
-                y = -sin(yaw)*vert_d;
-                z = sqrt(vert_d*vert_d - y*y);
-
-                camPos_y = lookAt_y-y;
-                camPos_z = lookAt_z-z;
+                Mat R = Eular2Rot(yaw, pitch, 0);
+                Mat ln = R*l;
+                lookAt_x = ln.at<double>(0,0)+camPos_x;
+                lookAt_y = ln.at<double>(1,0)+camPos_y;
+                lookAt_z = ln.at<double>(2,0)+camPos_z;
 
                 TransfCam2Orig = TransformationFromCamToOrigin(camPos_x, camPos_y, camPos_z, pitch, yaw);
 
@@ -391,10 +376,10 @@ void PointCloudViewer::view(string windowName, bool loop)
 
             case 'j':
             {
-                double x=(lookAt_x-camPos_x);
-                double z=(lookAt_z-camPos_z);
-
-                double horiz_d = sqrt(x*x+z*z);
+                Mat l = Mat::zeros(3,1,CV_64F);
+                l.at<double>(0,0) = lookAt_x-camPos_x;
+                l.at<double>(1,0) = lookAt_y-camPos_y;
+                l.at<double>(2,0) = lookAt_z-camPos_z;
 
                 pitch += pitch_step*CV_PI/180.;
                 if(pitch < -2*CV_PI)
@@ -402,29 +387,22 @@ void PointCloudViewer::view(string windowName, bool loop)
                 if(pitch > 2*CV_PI)
                     pitch = 0;
 
-                x = sin(pitch)*horiz_d;
-                z = sqrt(horiz_d*horiz_d - x*x);
-
-                camPos_x = lookAt_x-x;
-                camPos_z = lookAt_z-z;
+                Mat R = Eular2Rot(yaw, pitch, 0);
+                Mat ln = R*l;
+                lookAt_x = ln.at<double>(0,0)+camPos_x;
+                lookAt_y = ln.at<double>(1,0)+camPos_y;
+                lookAt_z = ln.at<double>(2,0)+camPos_z;
 
                 TransfCam2Orig = TransformationFromCamToOrigin(camPos_x, camPos_y, camPos_z, pitch, yaw);
 
                 break;
             }
-            case 'c':
-            {
-                useDepthColormap = !useDepthColormap;
-                insertColormapLegend = useDepthColormap;
-                break;
-            }
-
             case 'l':
             {
-                double x=(lookAt_x-camPos_x);
-                double z=(lookAt_z-camPos_z);
-
-                double horiz_d = sqrt(x*x+z*z);
+                Mat l = Mat::zeros(3,1,CV_64F);
+                l.at<double>(0,0) = lookAt_x-camPos_x;
+                l.at<double>(1,0) = lookAt_y-camPos_y;
+                l.at<double>(2,0) = lookAt_z-camPos_z;
 
                 pitch -= pitch_step*CV_PI/180.;
                 if(pitch < -2*CV_PI)
@@ -432,13 +410,19 @@ void PointCloudViewer::view(string windowName, bool loop)
                 if(pitch > 2*CV_PI)
                     pitch = 0;
 
-                x = sin(pitch)*horiz_d;
-                z = sqrt(horiz_d*horiz_d - x*x);
-
-                camPos_x = lookAt_x-x;
-                camPos_z = lookAt_z-z;
+                Mat R = Eular2Rot(yaw, pitch, 0);
+                Mat ln = R*l;
+                lookAt_x = ln.at<double>(0,0)+camPos_x;
+                lookAt_y = ln.at<double>(1,0)+camPos_y;
+                lookAt_z = ln.at<double>(2,0)+camPos_z;
 
                 TransfCam2Orig = TransformationFromCamToOrigin(camPos_x, camPos_y, camPos_z, pitch, yaw);
+                break;
+            }
+            case 'c':
+            {
+                useDepthColormap = !useDepthColormap;
+                insertColormapLegend = useDepthColormap;
                 break;
             }
         }
