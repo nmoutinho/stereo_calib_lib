@@ -17,7 +17,9 @@ cv::Mat EyesStereoModel(double ty, double tz, double rx, double ry, double rz)
     k.at<double>(1,1) = fy;
     k.at<double>(1,2) = cy;
 
-    Mat img = Mat::zeros(h,2*w,CV_8UC3);
+    //Mat img = Mat::zeros(h,2*w,CV_8UC3);
+    Mat img = Mat::ones(h,2*w,CV_8UC3);
+    img = Scalar(255,255,255);
     Mat l_img = img(Range(0,h), Range(w,2*w));
     Mat r_img = img(Range(0,h), Range(0,w));
 
@@ -129,23 +131,25 @@ cv::Mat EyesStereoModel(double ty, double tz, double rx, double ry, double rz)
 
     {
         //draw cameras
-        circle(r_img, Point(w/2,h/2), 50, Scalar(255,255,255), -1);
-        circle(r_img, optical_axis_r_end, 20, Scalar(0,0,0), -1);
+        circle(r_img, Point(w/2,h/2), 75, Scalar(255,255,255), -1);
+        circle(r_img, optical_axis_r_end, 30, Scalar(0,0,0), -1);
+        circle(r_img, Point(w/2,h/2), 75, Scalar(0,0,0), 2);
 
-        circle(l_img, Point(w/2,h/2), 50, Scalar(255,255,255), -1);
-        circle(l_img, optical_axis_l_end, 20, Scalar(0,0,0), -1);
+        circle(l_img, Point(w/2,h/2), 75, Scalar(255,255,255), -1);
+        circle(l_img, optical_axis_l_end, 30, Scalar(0,0,0), -1);
+        circle(l_img, Point(w/2,h/2), 75, Scalar(0,0,0), 2);
 
         //drawArrow(l_img, x_axis_l_start, x_axis_l_end, Scalar(255,0,0));
-        line(l_img, x_axis_l_start, x_axis_l_end, Scalar(255,0,0),1,8);
-        line(l_img, y_axis_l_start, y_axis_l_end, Scalar(0,255,0),1,8);
-        line(l_img, z_axis_l_start, z_axis_l_end, Scalar(0,0,255),1,8);
+        line(l_img, x_axis_l_start, x_axis_l_end, Scalar(255,0,0),2,8);
+        line(l_img, y_axis_l_start, y_axis_l_end, Scalar(0,255,0),2,8);
+        line(l_img, z_axis_l_start, z_axis_l_end, Scalar(0,0,255),2,8);
 
-        line(r_img, x_axis_r_start, x_axis_r_end, Scalar(255,0,0),1,8);
-        line(r_img, y_axis_r_start, y_axis_r_end, Scalar(0,255,0),1,8);
-        line(r_img, z_axis_r_start, z_axis_r_end, Scalar(0,0,255),1,8);
+        line(r_img, x_axis_r_start, x_axis_r_end, Scalar(255,0,0),2,8);
+        line(r_img, y_axis_r_start, y_axis_r_end, Scalar(0,255,0),2,8);
+        line(r_img, z_axis_r_start, z_axis_r_end, Scalar(0,0,255),2,8);
     }
 
-    putText(r_img, "rx: "+doubleToString(offset_x_r*180/CV_PI)+"deg", Point(0.25*w,0.1*h), FONT_HERSHEY_TRIPLEX, .4, Scalar(255,255,255));
+    /*putText(r_img, "rx: "+doubleToString(offset_x_r*180/CV_PI)+"deg", Point(0.25*w,0.1*h), FONT_HERSHEY_TRIPLEX, .4, Scalar(255,255,255));
     putText(r_img, "ry: "+doubleToString(offset_y_r*180/CV_PI)+"deg", Point(0.25*w,0.2*h), FONT_HERSHEY_TRIPLEX, .4, Scalar(255,255,255));
     putText(r_img, "rz: "+doubleToString(offset_z_r*180/CV_PI)+"deg", Point(0.25*w,0.3*h), FONT_HERSHEY_TRIPLEX, .4, Scalar(255,255,255));
     putText(r_img, "Right Camera", Point(0.25*w,0.85*h), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
@@ -153,7 +157,7 @@ cv::Mat EyesStereoModel(double ty, double tz, double rx, double ry, double rz)
     putText(l_img, "rx: "+doubleToString(0)+"deg", Point(0.25*w,0.1*h), FONT_HERSHEY_TRIPLEX, .4, Scalar(255,255,255));
     putText(l_img, "ry: "+doubleToString(offset_y_l*180/CV_PI)+"deg", Point(0.25*w,0.2*h), FONT_HERSHEY_TRIPLEX, .4, Scalar(255,255,255));
     putText(l_img, "rz: "+doubleToString(offset_z_l*180/CV_PI)+"deg", Point(0.25*w,0.3*h), FONT_HERSHEY_TRIPLEX, .4, Scalar(255,255,255));
-    putText(l_img, "Left Camera", Point(0.25*w,0.85*h), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));
+    putText(l_img, "Left Camera", Point(0.25*w,0.85*h), FONT_HERSHEY_TRIPLEX, .5, Scalar(255,255,255));//*/
 
     //imshow("img", img);
 

@@ -10,7 +10,7 @@ calibrationSphericalMultipleFilterStereoCameras::calibrationSphericalMultipleFil
 {
     convergence_threshold = 0.5; //0.025;
     //norm_inn_sq_win = 5;
-    mean_inn_samples = 10;
+    mean_inn_samples = 5; //10;
 }
 
 

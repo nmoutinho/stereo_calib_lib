@@ -131,6 +131,7 @@ class spherical_multiple_filter_stereo_calib {
 		void calibrate(const cv::Mat image_left, const cv::Mat image_right);
 		void calibrate(std::vector<Feature> features_left, std::vector<Feature> features_right);
 
+        bool filtersConverged(){return filters_converged;};
 		spherical_multiple_filter_stereo_calib_data get_calibrated_transformations();
         spherical_multiple_filter_stereo_disparity_data get_disparity_map(cv::Mat left_image, cv::Mat right_image);
         spherical_multiple_filter_stereo_disparity_data get_disparity_map(cv::Mat left_image, cv::Mat right_image, cv::Mat t_left_cam_to_right_cam, cv::Mat R_left_cam_to_right_cam);

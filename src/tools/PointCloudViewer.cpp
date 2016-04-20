@@ -211,20 +211,27 @@ void PointCloudViewer::view(string windowName, bool loop)
         divide(projectedPoints.row(1), projectedPoints.row(2), imageProjectedPointsY);
 
         Mat projectedPointCloudMat = TransfCam2Orig*pointCloudMat;
+        Mat closestDepth = Mat::ones(image.rows, image.cols, CV_64F)*1e6;
 
         for (int i = 0; i < imageProjectedPointsX.cols; i++)
         {
             double depth = projectedPointCloudMat.at<double>(2,i);
-            double norm = sqrt(pointCloudMat.at<double>(0,i)*pointCloudMat.at<double>(0,i) +
-            pointCloudMat.at<double>(1,i)*pointCloudMat.at<double>(1,i) +
-            pointCloudMat.at<double>(2,i)*pointCloudMat.at<double>(2,i));
 
-            if(depth > 0)
+            if(depth < closestDepth.at<double>(imageProjectedPointsY.at<double>(0,i), imageProjectedPointsX.at<double>(0,i)))
             {
-                if(useDepthColormap)
-                    circle(image, Point(imageProjectedPointsX.at<double>(0,i),imageProjectedPointsY.at<double>(0,i)), 2, getDepthColormap(norm, colormapMinDepth, colormapMaxDepth), -1);
-                else
-                    circle(image, Point(imageProjectedPointsX.at<double>(0,i),imageProjectedPointsY.at<double>(0,i)), 2, Scalar(pointCloudColor[i].x,pointCloudColor[i].y,pointCloudColor[i].z), -1);
+                double norm = sqrt(pointCloudMat.at<double>(0,i)*pointCloudMat.at<double>(0,i) +
+                pointCloudMat.at<double>(1,i)*pointCloudMat.at<double>(1,i) +
+                pointCloudMat.at<double>(2,i)*pointCloudMat.at<double>(2,i));
+
+                if(depth > 0)
+                {
+                    if(useDepthColormap)
+                        circle(image, Point(imageProjectedPointsX.at<double>(0,i),imageProjectedPointsY.at<double>(0,i)), 2, getDepthColormap(pointCloudMat.at<double>(2,i), colormapMinDepth, colormapMaxDepth), -1);
+                    else
+                        circle(image, Point(imageProjectedPointsX.at<double>(0,i),imageProjectedPointsY.at<double>(0,i)), 2, Scalar(pointCloudColor[i].x,pointCloudColor[i].y,pointCloudColor[i].z), -1);
+                }
+
+                closestDepth.at<double>(imageProjectedPointsY.at<double>(0,i), imageProjectedPointsX.at<double>(0,i)) = depth;
             }
         }
 
