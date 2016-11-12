@@ -8,7 +8,7 @@ using namespace cv;
 
 calibrationSphericalMultipleFilterStereoCameras::calibrationSphericalMultipleFilterStereoCameras(void)
 {
-    convergence_threshold = 0.5; //0.025;
+    convergence_threshold = 2.; //0.025;
     //norm_inn_sq_win = 5;
     mean_inn_samples = 10;
 }

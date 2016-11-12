@@ -143,7 +143,7 @@ void spherical_multiple_filter_stereo_calib::calibrate(const cv::Mat image_left,
         if(diff_left > min_image_diff || diff_right > min_image_diff)
         {
             use_measurements = true;
-            filters_converged = false;
+            //filters_converged = false;
         }
         else
             use_measurements = false;//*/
@@ -156,7 +156,7 @@ void spherical_multiple_filter_stereo_calib::calibrate(const cv::Mat image_left,
         first_images = false;
     }
 
-    if(use_measurements || !filters_converged)
+    if(use_measurements)// || !filters_converged)
     {
         featuresSIFT get_features;
         std::vector<Feature> features_left;
@@ -216,14 +216,21 @@ void spherical_multiple_filter_stereo_calib::calibrate(std::vector<Feature> feat
     double rz_var = sqrt(csc_rz.P_k.at<double>(0,0));
     double r_var = max(r_var_tmp, rz_var);
 
-    if(!filters_converged)
+    /*filters_converged = (csc_rx.filter_converged && csc_ry.filter_converged && csc_rz.filter_converged);
+    if(filters_converged)
+        use_close_points = true;
+    else
+        use_close_points = false;//*/
+
+    /*if(!filters_converged)
     {
-        filters_converged = (csc_ty.filter_converged && csc_tz.filter_converged && csc_rx.filter_converged && csc_ry.filter_converged && csc_rz.filter_converged);
+        filters_converged = (csc_rx.filter_converged && csc_ry.filter_converged && csc_rz.filter_converged);
+        cout << filters_converged << endl;
         if(filters_converged)
             use_close_points = true;
         else
             use_close_points = false;
-    }
+    }//*/
 
     /*int w = 150;
     double var = 2.5;
@@ -573,13 +580,17 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
 
     Mat ir = Mat::zeros(2*sscp_general.left_cam_resy, 3*sscp_general.left_cam_resx, CV_8UC3);
 
-    bool show_points = false;
+    bool show_points = true;
     //bool use_good_points = true;
 
     //double threshold_all = 0.0;
     //double threshold_good = 0.7; //0.75;
     //double threshold_bad = 0.6; //0.6;
     double threshold = 1.;
+
+    Mat r_rect_left, r_rect_right, p1, p2, q;
+    stereoRectify(Kleft, Mat::zeros(5,1,CV_64F), Kright, Mat::zeros(5,1,CV_64F), Size(sscp_general.left_cam_resx, sscp_general.left_cam_resy), cmfscd.R_left_cam_to_right_cam,
+                  cmfscd.t_left_cam_to_right_cam, r_rect_left, r_rect_right, p1, p2, q);
 
     for(int j=0; j<number_of_features; j++){
 
@@ -588,10 +599,13 @@ filterMeasurementsStruct spherical_multiple_filter_stereo_calib::defineFiltersMe
 
         double weight_ty = 1;
         double weight_tz = 1;
-        if(use_close_points)
+        //if(use_close_points)
         {
-            weight_ty = PointWeight_ty(features_left[j].Point, features_right[j].Point, Kleft, Kright, cmfscd.transformation_left_cam_to_right_cam);
-            weight_tz = PointWeight_tz(features_left[j].Point, features_right[j].Point, Kleft, Kright, cmfscd.transformation_left_cam_to_right_cam);
+            //weight_ty = PointWeight_ty(features_left[j].Point, features_right[j].Point, Kleft, Kright, cmfscd.transformation_left_cam_to_right_cam);
+            //weight_tz = PointWeight_tz(features_left[j].Point, features_right[j].Point, Kleft, Kright, cmfscd.transformation_left_cam_to_right_cam);
+
+            weight_ty = PointWeight_ty(features_left[j].Point, features_right[j].Point, Kleft, Kright, baseline, r_rect_left, r_rect_right);
+            weight_tz = PointWeight_tz(features_left[j].Point, features_right[j].Point, Kleft, Kright, baseline, r_rect_left, r_rect_right);
         }
 
         double weight_rx_left = PointWeight_rx(features_left[j].Point, Kleft, sscp_general.left_cam_resy);

@@ -13,11 +13,11 @@ using namespace cv;
 featuresSIMULATED::featuresSIMULATED(void){}
 
 void featuresSIMULATED::Apply(std::vector<Feature> &Features1, std::vector<Feature> &Features2,
-cv::Mat kleft, cv::Mat kright, int image_w, int image_h, cv::Mat T_1to2, int numberFeatures)
+cv::Mat kleft, cv::Mat kright, int image_w, int image_h, cv::Mat T_1to2, int numberFeatures, bool further_points)
 {
     int min_distance = 500; //750;
     //int error = 10000;
-    int max_distance = 1000;
+    int max_distance = 10000;
     //srand(time(NULL));
 
     Mat left = Mat::zeros(image_h, image_w, CV_64F);
@@ -135,11 +135,24 @@ cv::Mat kleft, cv::Mat kright, int image_w, int image_h, cv::Mat T_1to2, int num
         }
         else
         {
-            int max_x = 2*(min_distance+max_distance);
-            int max_y = 2*(min_distance+max_distance);
-            x = (rand() % max_x)-double(max_x)/2;
-            y = (rand() % max_y)-double(max_y)/2;
-            z = (rand() % max_distance)+min_distance; //min_distance;
+            if(further_points)
+            {
+                z = (rand() % 10000)+3500;
+                int max_x = z;
+                int max_y = z;
+                x = (rand() % max_x)-double(max_x)/2;
+                y = (rand() % max_y)-double(max_y)/2;
+
+            }
+            else
+            {
+                int m_distance = 2*min_distance;
+                z = (rand() % m_distance)+min_distance;
+                int max_x = z;
+                int max_y = z;
+                x = (rand() % max_x)-double(max_x)/2;
+                y = (rand() % max_y)-double(max_y)/2;
+            }
         }
 
         left_point.at<double>(0,0) = x;
@@ -162,7 +175,7 @@ cv::Mat kleft, cv::Mat kright, int image_w, int image_h, cv::Mat T_1to2, int num
         feat_left.Point.x = round(left_image_point.at<double>(0,0));
         feat_left.Point.y = round(left_image_point.at<double>(1,0));
 
-        int max_feature_size = 10;
+        int max_feature_size = 4;
         feat_right.Point.x = round(right_image_point.at<double>(0,0) + (rand() %max_feature_size)-double(max_feature_size)/2);
         feat_right.Point.y = round(right_image_point.at<double>(1,0) + (rand() %max_feature_size)-double(max_feature_size)/2);
 
@@ -182,10 +195,14 @@ cv::Mat kleft, cv::Mat kright, int image_w, int image_h, cv::Mat T_1to2, int num
                 Features1.push_back(feat_left);
                 Features2.push_back(feat_right);
 
+                //cout << Features1.size()-1 << ": " << x << ", " << y << ", " << z << endl;
+
             }
 
         }
 
     }
+
+   // cout << endl << endl;
 
 }

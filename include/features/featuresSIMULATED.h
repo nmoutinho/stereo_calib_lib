@@ -15,7 +15,7 @@ class featuresSIMULATED
 
 		/// Acquire NumFeat features in the image Img
 		void Apply(std::vector<Feature> &Features1, std::vector<Feature> &Features2,
-		cv::Mat kleft, cv::Mat kright, int image_w, int image_h, cv::Mat T_1to2, int numberFeatures);
+		cv::Mat kleft, cv::Mat kright, int image_w, int image_h, cv::Mat T_1to2, int numberFeatures, bool further_points=false);
 
 };
 

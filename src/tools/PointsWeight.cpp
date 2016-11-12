@@ -22,7 +22,7 @@ double PointWeight_ty(cv::Point left_point, cv::Point right_point, cv::Mat Kleft
             w = 0;
     }
     else
-        w=1;
+        w=0;
 
     return w;
 }
@@ -30,6 +30,74 @@ double PointWeight_ty(cv::Point left_point, cv::Point right_point, cv::Mat Kleft
 double PointWeight_tz(cv::Point left_point, cv::Point right_point, cv::Mat Kleft, cv::Mat Kright, cv::Mat T_left_to_right)
 {
     return PointWeight_ty(left_point, right_point, Kleft, Kright, T_left_to_right);
+}
+
+double PointWeight_ty(cv::Point left_point, cv::Point right_point, cv::Mat Kleft, cv::Mat Kright, double baseline, Mat r_rect_left, Mat r_rect_right)
+{
+    Mat lp = Mat::ones(3,1,CV_64F);
+    Mat rp = Mat::ones(3,1,CV_64F);
+
+    lp.at<double>(0,0) = left_point.x;
+    lp.at<double>(1,0) = left_point.y;
+
+    rp.at<double>(0,0) = right_point.x;
+    rp.at<double>(1,0) = right_point.y;
+
+    Mat lpn = r_rect_left*Kleft.inv()*lp;
+    Mat rpn = r_rect_right*Kright.inv()*rp;
+
+    lpn = lpn.clone()/lpn.at<double>(2,0);
+    rpn = rpn.clone()/rpn.at<double>(2,0);
+
+    Mat lpi = Kleft*lpn;
+    Mat rpi = Kright*rpn;
+
+    double disparity = lpi.at<double>(0,0) - rpi.at<double>(0,0);
+
+    double fx = Kleft.at<double>(0,0);
+    double max_z = 1000;
+
+    double min_disparity = fx*baseline/max_z;
+
+    double w = 0.;
+    if(disparity >= min_disparity)
+        w = 1.;
+
+    return w;
+}
+
+double PointWeight_tz(cv::Point left_point, cv::Point right_point, cv::Mat Kleft, cv::Mat Kright, double baseline, Mat r_rect_left, Mat r_rect_right)
+{
+    Mat lp = Mat::ones(3,1,CV_64F);
+    Mat rp = Mat::ones(3,1,CV_64F);
+
+    lp.at<double>(0,0) = left_point.x;
+    lp.at<double>(1,0) = left_point.y;
+
+    rp.at<double>(0,0) = right_point.x;
+    rp.at<double>(1,0) = right_point.y;
+
+    Mat lpn = r_rect_left*Kleft.inv()*lp;
+    Mat rpn = r_rect_right*Kright.inv()*rp;
+
+    lpn = lpn.clone()/lpn.at<double>(2,0);
+    rpn = rpn.clone()/rpn.at<double>(2,0);
+
+    Mat lpi = Kleft*lpn;
+    Mat rpi = Kright*rpn;
+
+    double disparity = lpi.at<double>(0,0) - rpi.at<double>(0,0);
+
+    double fx = Kleft.at<double>(0,0);
+    double max_z = 1000;
+
+    double min_disparity = fx*baseline/max_z;
+
+    double w = 0.;
+    if(disparity >= min_disparity)
+        w = 1.;
+
+    return w;
 }
 
 //w=0 se o ponto for bom / w=1 se o ponto for mau

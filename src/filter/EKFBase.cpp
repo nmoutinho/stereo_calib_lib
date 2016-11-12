@@ -304,6 +304,7 @@ void Innovation_Update(Mat X_pred, Mat P_pred, Mat Inn, Mat Pn, Mat Q, Mat R, Ma
         mean_inn_vec.push_back(mean_inn);
         Mat all_mean_inn = Mat(mean_inn_vec);
         double mean_mean_inn = mean(all_mean_inn)[0];
+        //cout << mean_mean_inn << endl;
         if(mean_mean_inn < convergence_threshold)
         {
             filter_converged = true;
