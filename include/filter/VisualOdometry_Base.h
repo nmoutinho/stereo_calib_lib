@@ -3,6 +3,10 @@
 
 #include "opencv/cv.h"
 #include "opencv/highgui.h"
+#include "opencv2/calib3d.hpp"
+#include "opencv2/imgproc.hpp"
+#include "opencv2/highgui.hpp"
+
 #include "Rodrigues.h"
 #include "Kinematics.h"
 

@@ -1,7 +1,8 @@
 #include <opencv/cv.h>
 #include <vector>
 #include "features/featuresSIFT.h"
-#include "opencv2/nonfree/features2d.hpp"
+#include "opencv2/xfeatures2d.hpp"
+#include <opencv2/calib3d.hpp>
 #include <iostream>
 
 #pragma warning (disable : 4244) //disable conversion double to float
@@ -18,10 +19,10 @@ void featuresSIFT::Apply(const cv::Mat &Img1, const cv::Mat &Img2, std::vector<F
     cv::Mat Desc2;
     std::vector <cv::KeyPoint> kp1, kp2;
 
-    cv::SIFT feature_extractor = SIFT(maximumNumberFeatures);
+    Ptr<cv::xfeatures2d::SIFT> feature_extractor =  cv::xfeatures2d::SIFT::create(maximumNumberFeatures);
 
-    feature_extractor(Img1, Mat(), kp1, Desc1);
-    feature_extractor(Img2, Mat(), kp2, Desc2);
+    feature_extractor->detect(Img1, kp1, Desc1);
+    feature_extractor->detect(Img2, kp2, Desc2);
 
     std::vector< std::vector< DMatch > > matches;
     std::vector< DMatch > good_matches;

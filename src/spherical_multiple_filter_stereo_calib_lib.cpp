@@ -363,22 +363,14 @@ spherical_multiple_filter_stereo_disparity_data spherical_multiple_filter_stereo
 	cv::remap(right_image, rectified_right_image, stereo_rectification_map1_right, stereo_rectification_map2_right, cv::INTER_LINEAR);
 
 	//Disparity Method
-	StereoSGBM SBM;
+    Ptr<StereoSGBM> SBM = StereoSGBM::create(0, 80, 3,
+                                              0, 0, 0,
+                                              0,15 );
 
-	SBM.numberOfDisparities = 80;
-	SBM.preFilterCap = 63;
-	SBM.SADWindowSize = 7;
-	SBM.P1 = 768;
-	SBM.P2 = 1536;
-	SBM.minDisparity = 0;
-	SBM.uniquenessRatio = 15;
-	SBM.speckleWindowSize = 50;
-	SBM.speckleRange = 16;
-	SBM.disp12MaxDiff = 0;
-	SBM.fullDP = true;
+
 
 	Mat Disparity;
-    SBM(rectified_left_image, rectified_right_image, Disparity);
+    SBM->compute(rectified_left_image, rectified_right_image, Disparity);
     Disparity.convertTo(sdd.disparity_values, CV_64F, -1/16.);
 
     sdd.point_cloud_xyz = Mat::zeros(left_image.rows, left_image.cols, CV_64FC3);
@@ -410,7 +402,7 @@ spherical_multiple_filter_stereo_disparity_data spherical_multiple_filter_stereo
 
 	//cout << endl << endl;;
     sdd.point_cloud_rgb = rectified_left_image;
-    Disparity.convertTo(sdd.disparity_image, CV_8U, 255/(SBM.numberOfDisparities*16.));
+    Disparity.convertTo(sdd.disparity_image, CV_8U, 255/(SBM->getNumDisparities()*16.));
 
     return sdd;
 }

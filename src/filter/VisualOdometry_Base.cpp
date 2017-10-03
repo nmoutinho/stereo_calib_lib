@@ -6,7 +6,7 @@
 #pragma warning (disable : 4244) //disable conversion double to float
 
 using namespace cv;
-
+using namespace std;
 //Obtain the projection matrix P
 cv::Mat ProjectionMat(cv::Mat CamCalibrationMat, cv::Mat TransformationMat){
 
